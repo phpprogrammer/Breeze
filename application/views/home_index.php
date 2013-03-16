@@ -11,7 +11,7 @@
 	</form>
 	<button><a href="/logout">wyloguj</a></button><br/>
 	<button><a href="/test">testowo</a></button><br/>
-	<?=\system\libraries\Session::debug() ?>
+	<?=\system\core\Session::debug() ?>
 	<?=debug($_COOKIE) ?>
 	<?=$timer?>
 </body>

@@ -16,16 +16,8 @@
 	$lock_time_captcha_failed = 300;
 	$max_login_failed_attempts = 3;
 	$max_captcha_failed_attempts = 5;
-	$meta_author = 'Tomasz Sapeta';
-	$meta_created = '06/04/2012';
-	$meta_description = 'opis';
-	$meta_generator = 'oprogramowanie';
-	$meta_keywords = 'kluczowe';
-	$meta_revised = '';
-	$meta_robots = 'index, follow';
 	$multilingual = true;
 	$reduce_http_requests = true;
 	$site_disabled = false;
-	$site_title = '';
 	$statistics = true;
 	$style = 'default';
