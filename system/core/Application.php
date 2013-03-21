@@ -6,14 +6,16 @@
         
     final class Application
     {
-        public static $version;
-        public static $author;	
+        public static $author;
         public static $db;
+        public static $log;
         public static $memory;
         public static $router;
+        public static $security;
         public static $statistic;
         public static $timers = array();
         public static $userAgent;
+        public static $version;
         public static $view;
         
         public static function loadController($name = "", $act = "", $vars = array())
@@ -39,7 +41,7 @@
         public static function loadUtility($name = "", $act = "", $vars = array())
         {
             $q = str_replace(DS, "\\", rtrim(substr(UTL_PATH, strlen(ROOT)), DS) . DS . ltrim($name, DS));
-            $target = new $q($vars);
+            $target = new $q($vars, $name, $act, true);
             
             if (method_exists($target, $act))
                 $target->$act($vars);

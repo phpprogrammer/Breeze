@@ -40,10 +40,18 @@
     App::$db = new Database();
     App::$router = new Router();
     App::$view = new View();
+    App::$security = new Security();
     App::$userAgent = new UserAgent();
     App::$statistic = new Statistic();
+    App::$log = new Log(LOGS_PATH.'framework.log');
     
     Session::start();
+
+App::$log->write('dupa', 'info');
+    
+    if (App::$memory->get('anti_flooding_filter') === true) {
+        App::$security->antiFloodingFilter();
+    }
     
     foreach (App::$memory->get('helpers_autoload') as $value) {
         if(is_readable($path = HELP_PATH.$value.'.php')) {
@@ -64,16 +72,17 @@
     }
     
     if ($params['utility'] !== true) {
-        App::$view->path(VIEW_PATH);
+        App::$view->path(VIEW_PATH, STYLE_PATH . App::$memory->get('style') . DS);
         App::loadController($params['controller'], $params['action'], $params['vars']);
     } else {
         define('SELF', UTL_PATH . rtrim($params['location'], DS) . DS);
         App::$view->path(SELF . 'views' . DS);
         App::loadUtility($params['controller'], $params['action'], $params['vars']);
+        $params['controller'] = String::leaveRoot($params['controller']);
     }
     
     Session::save();
-    
+
     App::$view->expose($params['controller'].'_'.$params['action']);
     
     ob_end_flush();

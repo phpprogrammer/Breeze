@@ -4,6 +4,10 @@
     
     defined('ROOT') or die();
     
+    use \system\libraries\CSSMin;
+    use \system\libraries\JSMin;
+    use \system\libraries\LessCompiler;
+
     class Optimization
     {
         

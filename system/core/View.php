@@ -44,9 +44,13 @@
             }
         }
         
-        public function path($path)
+        public function path($path, $stylePath = "")
         {
+            if (empty($stylePath)) {
+                $stylePath = $path;
+            }
             $this->path = rtrim($path, DS) . DS;
+            $this->stylePath = rtrim($stylePath, DS) . DS;
             return $this;
         }
         
@@ -132,11 +136,13 @@
     
             foreach ($args as $path) {
                 $e = String::extension($path);
-            
-                if ($e == 'css' || $e == 'less') {
-                    $this->css[] = $path;
-                } else if ($e == 'js') {
-                    $this->scripts[] = $path;
+                
+                if (is_readable($this->stylePath.$path)) {
+                    if ($e == 'css' || $e == 'less') {
+                        $this->css[] = $path;
+                    } else if ($e == 'js') {
+                        $this->scripts[] = $path;
+                    }
                 }
             }
             return $this;
@@ -144,7 +150,7 @@
         
         private function viewExists()
         {
-            return file_exists($this->path.$this->target.'.php');
+            return is_readable($this->path.$this->target.'.php');
         }
         
         private function getCSS()

@@ -54,7 +54,6 @@
             } else {
                 $this->resources = array();
             }
-            debug($this->resources);
             return $this->resources;
         }
         

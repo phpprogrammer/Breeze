@@ -15,7 +15,9 @@
         public function getHash();
         public function getUserID();
         public function setUserID($user_id);
+        public function getElapsedTime();
         public function save();
+        public function touchActivity($time);
         public function debug();
         public function destroy();
     }
@@ -39,7 +41,8 @@
                     self::$started = true;
                     self::$instance = new $ues(self::$memory);
                 } else {
-                    
+                    self::$started = true;
+                    self::$instance = new SimpleSession(self::$memory);
                 }
             }
         }
@@ -79,6 +82,16 @@
             return self::$instance->setUserID($uid);
         }
         
+        public static function getElapsedTime()
+        {
+            return self::$instance->getElapsedTime();
+        }
+        
+        public static function touchActivity($time = null)
+        {
+            return self::$instance->touchActivity($time);
+        }
+        
         public static function debug()
         {
             return self::$instance->debug();
@@ -89,33 +102,14 @@
             return self::$instance->destroy();
         }
         
-        public static function getStartTime()
+        public static function call($method)
         {
-            if (self::$started) {
-                return $_SESSION['start_time'];
-            } else {
-                return false;
+            if (isset($method)) {
+                $args = func_get_args();
+                array_shift($args);
+                return call_user_func_array(array(self::$instance, $method), $args);
             }
-        }
-        
-        private static function compare($old, $new)
-        {
-            $wn = str_replace(array("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"), '', $old);
-            $sl = strlen($wn);
-                                    
-            if ($new[0] !== $old[22] || $new[3] !== $old[5] || $new[6] !== $old[13] || $new[7] !== $old[7] || $new[10] !== $old[18]) {
-                return false;
-            } else if ($new[2] !== self::count($old, '0') || $new[5] !== self::count($old, $wn[$sl-2]) || $new[9] !== self::count($old, $wn[3 % $sl]) 
-                     || $new[11] !== self::count($old, $wn[11 % $sl]) || $new[13] !== self::count($old, '6', 7)) {
-                
-                return false;
-            }
-            return true;
-        }
-        
-        private static function count($str, $search, $add=0)
-        {
-            return ((intval(substr_count($str, $search)) + $add) % 10).'';
+            return null;
         }
     }
     
@@ -126,17 +120,30 @@
         private $hash;
         private $id;
         private $user_id = 0;
+        private $time = 0;
         private $data = array();
         private $is_changed = false;
+        private $renewal = false;
+        private $bad_request = false;
         
         public function __construct($memory)
         {
-            $this->cookie_name = $memory->get('cookie_name');
-            $this->cookie_expire = $memory->get('cookie_expire');
+            session_start();
+            session_regenerate_id(true);
             
-            if ($memory->get('destroy_session_global_var') === true) {
-                foreach ($_SESSION as $key => $value) {
-                    unset($_SESSION[$key]);
+            $this->cookie_name = $memory->get('cookie_name', '4et23fne');
+            $this->cookie_expire = $memory->get('cookie_expire', 3600);
+            $this->renewal = $memory->get('auto_renewal', false);
+            
+            if (!empty($_SESSION)) {
+                if (isset($_SESSION['__last_activity'])) {
+                    $this->time = $_SESSION['__last_activity'];
+                }
+                
+                if ($memory->get('destroy_session_global_var') === true) {
+                    foreach ($_SESSION as $key => $value) {
+                        unset($_SESSION[$key]);
+                    }
                 }
             }
             
@@ -151,22 +158,29 @@
     
             if (strlen($_COOKIE[$this->cookie_name]) !== 40 || !App::$db->exists('sessions', 'hash=:hash', array('hash' => $_COOKIE[$this->cookie_name]))) {
                 $this->_create();
+                $this->time = 1;
             } else {
                 $this->hash = $_COOKIE[$this->cookie_name];
             }
-            
-                                            echo "Echo on ".basename(__FILE__)."::  ".$this->hash ."<br/>";
             
             $session = App::$db->select(
                 'sessions',
                 'hash=:hash and IP=:ip and browser=:b and time > :t', 
                 array('hash' => $this->hash, 'ip' => $_SERVER['REMOTE_ADDR'], 'b' => substr(UserAgent::getInstance()->browserName(), 0, 16), 't' => (time() - $this->cookie_expire)),
-                'id, user_id, data'
+                'id, user_id, time, data'
             );
             
-            if (! empty($session) && isset($session[0]['id'], $session[0]['user_id'], $session[0]['data'])) {
+            if (!empty($session) && isset($session[0]['id'], $session[0]['user_id'], $session[0]['data'])) {
                 $this->id = intval($session[0]['id']);
                 $this->user_id = intval($session[0]['user_id']);
+                
+                if ($this->time === 0 && isset($session[0]['time'])) {
+                    $this->time = number_format($session[0]['time'], 2, '.', '');
+                }
+                
+                if (rand(0, $memory->get('max_draw_regenerate_hash', 10)) === 1) {
+                    $this->_updateHash();
+                }
                 
                 $data = unserialize($session[0]['data']);
                 if (is_array($data)) {
@@ -240,29 +254,47 @@
             }
         }
         
-        public function save()
+        public function getElapsedTime()
         {
+            return round((number_format(Timer::micro(2), 2, '.', '') - number_format($this->time, 2, '.', '')) * 1000);
+        }
+                                                             
+        public function save()
+        {            
             if ($this->is_changed === true) {
                 $data = '';
                 if (!empty($this->data)) {
                     $data = serialize($this->data);
                 }
                 
-                $old_hash = $this->hash;
-                $this->_generateHash();
+                $this->_updateHash();
                 
                 App::$db->update(
                     'sessions',
-                    array('hash' => $this->hash, 'time' => time(), 'data' => $data),
+                    array('time' => Timer::micro(2), 'data' => $data),
                     'hash=:hash and user_id=:uid and IP=:ip and browser=:b',
-                    array('hash' => $old_hash, 'uid' => $this->user_id, 'ip' => $_SERVER['REMOTE_ADDR'], 'b' => substr(UserAgent::getInstance()->browserName(), 0, 16))
+                    array('hash' => $this->hash, 'uid' => $this->user_id, 'ip' => $_SERVER['REMOTE_ADDR'], 'b' => substr(UserAgent::getInstance()->browserName(), 0, 16))
                 );
                 
-                $_COOKIE[$this->cookie_name] = $this->hash;
-                setcookie($this->cookie_name, $this->hash, time() + $this->cookie_expire);
-                
                 return true;
+            } elseif ($this->renewal === true) {
+                $this->touchActivity();
             }
+        }
+        
+        public function touchActivity($time = null)
+        {
+            if (empty($time)) {
+                $time = Timer::micro(2);
+            }
+            $_SESSION['__last_activity'] = $time;
+            
+            App::$db->update(
+                'sessions',
+                array('time' => $time),
+                'hash=:hash and user_id=:uid and IP=:ip and browser=:b',
+                array('hash' => $this->hash, 'uid' => $this->user_id, 'ip' => $_SERVER['REMOTE_ADDR'], 'b' => substr(UserAgent::getInstance()->browserName(), 0, 16))
+            );
         }
         
         public function getID()
@@ -313,7 +345,7 @@
                 'user_id' => 0,
                 'IP' => $_SERVER['REMOTE_ADDR'],
                 'browser' => substr(UserAgent::getInstance()->browserName(), 0, 16),
-                'time' => time(),
+                'time' => Timer::micro(2),
                 'data' => ''
             ));
         }
@@ -327,6 +359,23 @@
             return $this->hash;
         }
         
+        private function _updateHash()
+        {
+            $old_hash = $this->hash;
+            $this->_generateHash();
+            
+            App::$db->update(
+                'sessions',
+                array('hash' => $this->hash, 'time' => Timer::micro(2)),
+                'hash=:hash and user_id=:uid and IP=:ip and browser=:b',
+                array('hash' => $old_hash, 'uid' => $this->user_id, 'ip' => $_SERVER['REMOTE_ADDR'], 'b' => substr(UserAgent::getInstance()->browserName(), 0, 16))
+            );
+
+            $_COOKIE[$this->cookie_name] = $this->hash;
+            setcookie($this->cookie_name, $this->hash, time() + $this->cookie_expire);
+            return $this->hash;
+        }
+        
         private function _flush()
         {
             App::$db->delete('sessions', 'time < :t', array('t' => (time() - $this->cookie_expire)));
@@ -337,16 +386,18 @@
     class SimpleSession implements sessionInterface
     {
         private $user_id = 0;
-        private $start_time = 0;
+        private $time = 0;
         private $data = array();
         
         public function __construct($memory) {
             session_start();
             session_regenerate_id(true);
             
-            $this->start_time = time();
             $this->data =& $_SESSION;
             
+            if ($this->time = $this->get('__last_activity')) {
+                $this->set('__last_activity', null);
+            }
             if ($this->user_id = $this->get('userdata.id')) {
                 $this->set('userdata.id', null);
             }
@@ -410,9 +461,15 @@
             }
         }
         
+        public function getElapsedTime()
+        {
+            return $this->time - time();
+        }
+        
         public function save()
         {
-            
+            $this->set('__last_activity', Timer::micro(2));
+            $this->set('userdata.id', $this->user_id);
         }
         
         public function getID()
@@ -433,6 +490,14 @@
         public function getUserID()
         {
             return $this->user_id;
+        }
+        
+        public function touchActivity($time = null)
+        {
+            if (empty($time)) {
+                $time = Timer::micro(2);
+            }
+            $_SESSION['__last_activity'] = $time;
         }
         
         public function debug()

@@ -35,9 +35,9 @@
             return $this;
         }
         
-        public function get($var, $unserialize = false)
+        public function get($var, $default = null, $unserialize = false)
         {
-            $return = '';
+            $return = empty($default) ? '' : $default;
             if (isset($this->data[$var])) {
                 $return = $this->data[$var];
             } else {
@@ -97,6 +97,11 @@
                 unset($this->data[$key]);
             }
             return $this;
+        }
+        
+        public function getData()
+        {
+            return $this->data;
         }
         
         public function save()

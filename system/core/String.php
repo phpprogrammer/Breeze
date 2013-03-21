@@ -59,6 +59,13 @@
             return $path;
         }
         
+        public static function leaveRoot($path)
+        {
+            $exp = explode(DS, $path);
+            array_shift($exp);
+            return implode(DS, $exp);
+        }
+        
         public static function camelize($str, $lcfirst = true)
         {
             $str = preg_replace("/([_-\s]?([a-z0-9]+))/e", "ucwords('\\2')", $str);

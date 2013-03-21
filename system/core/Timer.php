@@ -22,12 +22,12 @@
             if ($ms === true) {
                 $this->inMS();
             }
-            return $this->start = $this->micro();
+            return $this->start = self::micro();
         }
         
-        public function stop($precision = 5)
+        public function stop($precision = 6)
         {
-            $this->stop = $this->micro();
+            $this->stop = self::micro($precision);
             if ($this->inMS === true) {
                 return $this->result = round(($this->stop - $this->start)*1000);
             } else {
@@ -35,14 +35,14 @@
             }
         }
         
-        private function micro()
-        {
-            list($msec, $sec) = explode(" ", microtime());
-            return ((float)$msec + (float)$sec);
-        }
-        
         public function inMS()
         {
             $this->inMS = true;
+        }
+        
+        public static function micro($precision = 6, $separator = '.')
+        {
+            list($msec, $sec) = explode(" ", microtime());
+            return number_format((float)$msec + (float)$sec, $precision, $separator, '');
         }
     }

@@ -53,17 +53,19 @@
             return $this->role->isRoot();
         }
         
-        public function isAllowed($rule)
+        public function isAllowed($rule, $default = false)
         {
             $items = explode('/', $rule);
             $id = 0;
             $i = 0;
             $cnt = sizeof($items);
             foreach ($items as $item) {
-                if (is_null($id = $this->findNode($id, $item))) {
+                $id = $this->findNode($id, $item);
+
+                if (is_null($id)) {
                     if (! $this->isRoot()) {
                         return false;
-                    } else {
+                    } elseif ($i === $cnt - 1) {
                         return true;
                     }
                 } elseif ($i === $cnt - 1) {
@@ -73,7 +75,7 @@
                 }
                 $i++;
             }
-            return false;
+            return $default;
         }
         
         public function insertRule($resource, $state)

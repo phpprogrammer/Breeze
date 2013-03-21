@@ -6,8 +6,9 @@
     
     class Error
     {
-        public function __construct($code, $title = null, $message = null)
+        public function __construct($code, $data = array())
         {
+            extract($data);
             include ERRORS_PATH.$code.'.php';
             exit();
         }

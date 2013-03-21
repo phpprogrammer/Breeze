@@ -6,6 +6,7 @@
     
     abstract class Controller
     {
+        protected $access;
         protected $view;
         protected $vars;
         protected $userManager;
@@ -13,7 +14,7 @@
         protected $get = array();
         protected $__dir = "";
         
-        final public function __construct($vars = array(), $name = "", $action = "")
+        final public function __construct($vars = array(), $name = "", $action = "", $utl = false)
         {
             $this->vars = $vars;
             $this->view = Application::$view;
@@ -31,6 +32,16 @@
             }
             if (!empty($name)) {
                 $this->__dir = ltrim(dirname($name), '.');
+            }
+            
+            if ($utl === false) {
+                if ($this->access->isAllowed('www/'.$name.'/'.$action) === false) {
+                    new Error('403');
+                }
+            } else {
+                if (! $this->access->isRoot()) {
+                    //new Error('403');
+                }
             }
         }
         

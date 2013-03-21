@@ -137,7 +137,7 @@
         public function trace($cs = false)
         {
             if ($this->params['utility'] !== true) {
-                $sm = $this->sitemap->get('sitemap', true);
+                $sm = $this->sitemap->get('sitemap', null, true);
                 $bomb = array_filter(explode(DS, $this->params['controller'].DS.$this->params['action']));
                 $i = 0;
                 
