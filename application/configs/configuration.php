@@ -1,7 +1,8 @@
 <?php
 	$activity_expiry_time = 90;
 	$adm_style = 'default';
-	$cache_expiry = 0;
+    $anti_flooding_filter = true;	
+    $cache_expiry = 0;
 	$css_compression = true;
 	$default_action = 'index';
 	$default_controller = 'home';
