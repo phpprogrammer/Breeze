@@ -44,3 +44,4 @@ application/temporary/caches/*
 application/temporary/optimized/*
 application/temporary/logs/*
 system/utilities/*
+* copy.php
