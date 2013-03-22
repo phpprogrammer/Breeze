@@ -79,6 +79,22 @@
             return implode(DS, $exp);
         }
         
+        public static function ltrim($haystack, $needle)
+        {
+            if (stripos($haystack, $needle) === 0) {
+                return substr($haystack, strlen($needle));
+            }
+            return $haystack;
+        }
+        
+        public static function rtrim($haystack, $needle)
+        {
+            if (($pos = stripos($haystack, $needle)) === strlen($haystack) - strlen($needle)) {
+                return substr($haystack, 0, $pos);
+            }
+            return $haystack;
+        }
+        
         public static function camelize($str, $lcfirst = true)
         {
             $str = preg_replace("/([_-\s]?([a-z0-9]+))/e", "ucwords('\\2')", $str);
