@@ -59,6 +59,19 @@
             return $path;
         }
         
+        public static function glue()
+        {
+            $args = func_get_args();
+            if (count($args) < 2) {
+                return false;
+            }
+            $path = array_shift($args);
+            foreach ($args as $value) {
+                $path = rtrim($path, DS) . DS . ltrim($value, DS);
+            }
+            return $path;
+        }
+        
         public static function leaveRoot($path)
         {
             $exp = explode(DS, $path);
