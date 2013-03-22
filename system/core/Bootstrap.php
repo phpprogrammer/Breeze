@@ -40,18 +40,12 @@
     App::$db = new Database();
     App::$router = new Router();
     App::$view = new View();
-    App::$security = new Security();
     App::$userAgent = new UserAgent();
     App::$statistic = new Statistic();
     App::$log = new Log(LOGS_PATH.'framework.log');
     
     Session::start();
-
-App::$log->write('dupa', 'info');
-    
-    if (App::$memory->get('anti_flooding_filter') === true) {
-        App::$security->antiFloodingFilter();
-    }
+    App::$security = new Security();
     
     foreach (App::$memory->get('helpers_autoload') as $value) {
         if(is_readable($path = HELP_PATH.$value.'.php')) {
