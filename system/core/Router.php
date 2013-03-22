@@ -49,7 +49,7 @@
         
         public function run()
         {
-            $this->url = substr($_SERVER['REQUEST_URI'], strlen(dirname($_SERVER['SCRIPT_NAME'])));
+            $this->url = substr(String::ltrim($_SERVER['REQUEST_URI'], '/index.php'), strlen(dirname($_SERVER['SCRIPT_NAME'])));
             if (!empty($this->url) && in_array(String::extension($this->url), $this->memory->get('allowed_extensions', array('css','js','less','jpg','png','gif'))) ) {
                 include_once(String::glue(ROOT, $this->url));
                 exit();
