@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-	<title>403 Permission Denied</title>
+	<title>403 Access Denied</title>
 </head>
 
 <style type="text/css">
