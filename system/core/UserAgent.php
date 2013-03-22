@@ -13,7 +13,8 @@
         private $systemVersion = 'unknown';
         private $engine = 'unknown';
         private $type = 'unknown';
-        private $string = "";
+        private $string = '';
+        private $robot = false;
         private static $instance;
         
         public function __construct()
@@ -64,6 +65,41 @@
         public function type()
         {
             return $this->type;
+        }
+        
+        public function robot()
+        {
+            return $this->robot;
+        }
+        
+        public function is_windows()
+        {
+            return $this->system === 'Windows';
+        }
+        
+        public function is_webkit()
+        {
+            return $this->engine === 'WebKit';
+        }
+        
+        public function is_trident()
+        {
+            return $this->engine === 'Trident';
+        }
+        
+        public function is_gecko()
+        {
+            return $this->engine === 'Gecko';
+        }
+        
+        public function is_presto()
+        {
+            return $this->engine === 'Presto';
+        }
+        
+        public function is_robot()
+        {
+            return $this->robot;
         }
         
         private function recognize()
@@ -162,26 +198,57 @@
                     break;
             }
             
-            if ($this->contain('mobile')) {
-                $this->type = 'mobile';
-            } elseif ($this->contain('bot')) {
+            $this->robot = $this->crawlerDetect();
+            
+            if ($this->robot !== false) {
                 $this->type = 'robot';
+            } elseif ($this->contain('mobile')) {
+                $this->type = 'mobile';
             } else {
                 $this->type = '';
             }
-            
         }
-        private function contain($str, $base=null) {
-            if (!isset($base)) {
+        
+        private function contain($str, $base = null)
+        {
+            if (empty($base)) {
                 $base = $this->string;
             }
-            
-            if (strpos($base, $str) === false) {
-                return false;
-            } else {
-                return true;
-            }
+            return strpos($base, $str);
         }
+        
+        private function crawlerDetect()
+        {
+            $crawlers = array(
+                array('Google', 'Google'),
+                array('msnbot', 'MSN'),
+                array('Rambler', 'Rambler'),
+                array('Yahoo', 'Yahoo'),
+                array('AbachoBOT', 'AbachoBOT'),
+                array('accoona', 'Accoona'),
+                array('AcoiRobot', 'AcoiRobot'),
+                array('ASPSeek', 'ASPSeek'),
+                array('CrocCrawler', 'CrocCrawler'),
+                array('Dumbot', 'Dumbot'),
+                array('FAST-WebCrawler', 'FAST-WebCrawler'),
+                array('GeonaBot', 'GeonaBot'),
+                array('Gigabot', 'Gigabot'),
+                array('Lycos', 'Lycos spider'),
+                array('MSRBOT', 'MSRBOT'),
+                array('Scooter', 'Altavista robot'),
+                array('AltaVista', 'Altavista robot'),
+                array('IDBot', 'ID-Search Bot'),
+                array('eStyle', 'eStyle Bot'),
+                array('Scrubby', 'Scrubby robot')
+            );
+            
+            foreach ($crawlers as $c) {
+                if (stristr($this->string, $c[0])) {
+                    return $c[1];
+                }
+            }
+            return false;
+        } 
         
         private function check($property, array $arr, $base = null)
         {
