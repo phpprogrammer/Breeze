@@ -43,6 +43,7 @@ application/temporary/caches/database/*
 application/temporary/caches/*
 application/temporary/optimized/*
 application/temporary/logs/*
+system/defaults/blacklist*
 system/defaults/sitemap*
 system/utilities/*
 * copy.php
