@@ -8,15 +8,19 @@
     {
         public $params = array('utility' => false);
         private $url = '';
-        private $splitter = '/';
+        private $splitter;
         private $defaultControllerName;
         private $defaultAction;
+        private $memory;
         
         public function __construct()
         {
-            $this->defaultControllerName = Application::$memory->get('default_controller');
-            $this->defaultAction = Application::$memory->get('default_action');
+            $this->memory = new Memory('routing');
             $this->sitemap = new Memory(DEF_PATH.'sitemap.php');
+            
+            $this->splitter = $this->memory->get('splitter', '/');
+            $this->defaultControllerName = $this->memory->get('default_controller', 'home');
+            $this->defaultAction = $this->memory->get('default_action', 'index');
             
             if ($this->checkSitemap() === false) {
                 $this->createSitemap();
@@ -46,7 +50,12 @@
         public function run()
         {
             $this->url = substr($_SERVER['REQUEST_URI'], strlen(dirname($_SERVER['SCRIPT_NAME'])));
-            return $this->route();
+            if (!empty($this->url) && in_array(String::extension($this->url), $this->memory->get('allowed_extensions', array('css','js','less','jpg','png','gif'))) ) {
+                include_once(String::glue(ROOT, $this->url));
+                exit();
+            } else {
+                return $this->route();
+            }
         }
         
         public function redirect($uri)
