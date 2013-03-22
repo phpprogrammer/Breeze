@@ -123,23 +123,14 @@
         private $time = 0;
         private $data = array();
         private $is_changed = false;
-        private $renewal = false;
         private $bad_request = false;
         
         public function __construct($memory)
         {
-            session_start();
-            session_regenerate_id(true);
-            
             $this->cookie_name = $memory->get('cookie_name', '4et23fne');
             $this->cookie_expire = $memory->get('cookie_expire', 3600);
-            $this->renewal = $memory->get('auto_renewal', false);
             
             if (!empty($_SESSION)) {
-                if (isset($_SESSION['__last_activity'])) {
-                    $this->time = $_SESSION['__last_activity'];
-                }
-                
                 if ($memory->get('destroy_session_global_var') === true) {
                     foreach ($_SESSION as $key => $value) {
                         unset($_SESSION[$key]);
@@ -277,7 +268,7 @@
                 );
                 
                 return true;
-            } elseif ($this->renewal === true) {
+            } else {
                 $this->touchActivity();
             }
         }
@@ -287,7 +278,6 @@
             if (empty($time)) {
                 $time = Timer::micro(2);
             }
-            $_SESSION['__last_activity'] = $time;
             
             App::$db->update(
                 'sessions',
