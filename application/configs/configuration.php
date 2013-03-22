@@ -1,11 +1,8 @@
 <?php
 	$activity_expiry_time = 90;
 	$adm_style = 'default';
-    $anti_flooding_filter = true;	
     $cache_expiry = 0;
 	$css_compression = true;
-	$default_action = 'index';
-	$default_controller = 'home';
 	$default_language = 'pl';
 	$gzip_compression = true;
 	$gzip_compression_level = 1;
