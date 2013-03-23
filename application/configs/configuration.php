@@ -3,12 +3,11 @@
 	$adm_style = 'default';
     $cache_expiry = 0;
 	$css_compression = true;
-	$default_language = 'pl';
 	$gzip_compression = true;
 	$gzip_compression_level = 1;
 	$helpers_autoload = array('main_functions');
 	$js_compression = true;
-	$languages = array('pl' => 'Polski',  'en' => 'English');
+    $languages = array('pl' => 'Polski', 'en' => 'English');
 	$load_user_interfaces = true;
 	$lock_time_login_failed = 900;
 	$lock_time_captcha_failed = 300;
