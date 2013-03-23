@@ -23,12 +23,14 @@
             $q = str_replace(DS, "\\", rtrim(substr(CTRL_PATH, strlen(ROOT)), DS) . DS . ltrim($name, DS));
             $target = new $q($vars, $name, $act);
             
-            if (method_exists($target, '_broadcast'))
+            if (method_exists($target, '_broadcast')) {
                 $target->_broadcast($vars);
-            if (method_exists($target, $act))
+            }
+            if (method_exists($target, $act)) {
                 $target->$act($vars);
-            else
+            } else {
                 return new Error('404');
+            }
             
             return $target;
         }
@@ -43,10 +45,11 @@
             $q = str_replace(DS, "\\", rtrim(substr(UTL_PATH, strlen(ROOT)), DS) . DS . ltrim($name, DS));
             $target = new $q($vars, $name, $act, true);
             
-            if (method_exists($target, $act))
+            if (method_exists($target, $act)) {
                 $target->$act($vars);
-            else
+            } else {
                 return new Error('404');
+            }
             return $target;
         }
         

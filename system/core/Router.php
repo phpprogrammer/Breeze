@@ -9,8 +9,9 @@
         public $params = array('utility' => false);
         private $url = '';
         private $splitter;
-        private $defaultControllerName;
+        private $defaultController;
         private $defaultAction;
+        private $defaultLanguage;
         private $memory;
         
         public function __construct()
@@ -19,8 +20,9 @@
             $this->sitemap = new Memory(DEF_PATH.'sitemap.php');
             
             $this->splitter = $this->memory->get('splitter', '/');
-            $this->defaultControllerName = $this->memory->get('default_controller', 'home');
+            $this->defaultController = $this->memory->get('default_controller', 'home');
             $this->defaultAction = $this->memory->get('default_action', 'index');
+            $this->defaultLanguage = $this->memory->get('default_language', 'en');
             
             if ($this->checkSitemap() === false) {
                 $this->createSitemap();
@@ -34,7 +36,7 @@
         
         public function setDefaultController($value)
         {
-            return $this->defaultControllerName = $value;
+            return $this->defaultController = $value;
         }
         
         public function setDefaultAction($value)
@@ -101,7 +103,7 @@
                 } elseif (isset($_SESSION['language']) && in_array($_SESSION['language'], array_keys(Application::$memory->get('languages')))) {
                     $this->params['language'] = $_SESSION['language'];
                 } else {
-                    $this->params['language'] = Application::$memory->get('default_language');
+                    $this->params['language'] = $this->defaultLanguage;
                 }
             } else {
                 $this->params['language'] = false;
@@ -111,19 +113,25 @@
                 $this->params['controller'] = String::path_wrap($this->params['location'], 2) . $arr[0];
                 array_shift($arr);
             } else {
-                $this->params['controller'] = String::path_wrap($this->params['location'], 2) . $this->defaultControllerName;
+                $this->params['controller'] = String::path_wrap($this->params['location'], 2) . $this->defaultController;
             }
-    
+            
             if (isset($arr[0])) {
                 $this->params['action'] = $arr[0];
                 array_shift($arr);
             } else {
                 $this->params['action'] = $this->defaultAction;
             }
-            
+
             $this->params['vars'] = $arr;
+
+            $trace = $this->trace();
             
-            if ($this->trace() === false) {
+            if ($trace === false && ($this->params['utility'] === true || $this->memory->get('redirect_to_default', false))) {
+                array_unshift($this->params['vars'], $this->params['action']);
+                $this->params['controller'] = $this->defaultController;
+                $this->params['action'] = $this->defaultAction;
+            } elseif ($trace === false) {
                 new Error('404');
             }
             
@@ -134,7 +142,7 @@
                     unset($arr[$i]);
                 }
             }
-            
+
             $this->params['uri'] = $_SERVER['REQUEST_URI'];
             $this->params['self'] = $_SERVER['PHP_SELF'];
             $this->params['host'] = $_SERVER['HTTP_HOST'];
@@ -146,7 +154,7 @@
         public function trace($cs = false)
         {
             if ($this->params['utility'] !== true) {
-                $sm = $this->sitemap->get('sitemap', null, true);
+                $sm = $this->sitemap->get('sitemap', '', true);
                 $bomb = array_filter(explode(DS, $this->params['controller'].DS.$this->params['action']));
                 $i = 0;
                 
@@ -171,17 +179,17 @@
                     $i++;
                 }
                 if ($cs === true) {
-                    if ($this->params['action'] !== $this->params['controller']) {
+                    if ($this->params['action'] !== $this->params['controller'] && $this->params['action'] !== 'index') {
                         array_unshift($this->params['vars'], $this->params['action']);
                     }
                     $this->params['action'] = basename($this->params['controller']);
-                    $this->params['controller'] = String::path_wrap($this->params['location'], 2) . Application::$memory->get('default_controller');
+                    $this->params['controller'] = String::path_wrap($this->params['location'], 2) . $this->defaultController;
                     
                     return $this->trace(true);
                 }
                 return true;
             } else {
-                return is_readable(rtrim(UTL_PATH, DS).DS.trim($this->params['controller'], DS).'.php');
+                return $this->issetController($this->params['controller'], true);
             }
         }
         
@@ -238,5 +246,15 @@
             
             $this->sitemap->insert('time', time())->insert('sitemap', serialize($result))->save();
             return $this;
+        }
+        
+        private function issetController($controller, $utility = false)
+        {
+            if ($utility) {
+                $path = UTL_PATH;
+            } else {
+                $path = CTRL_PATH;
+            }
+            return is_readable(rtrim($path, DS).DS.trim($controller, DS).'.php');
         }
     }

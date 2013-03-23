@@ -37,7 +37,7 @@
             return self::$instance;
         }
         
-        public function add_data($data)
+        public function data(Array $data = array())
         {
             if (! empty($data)) {
                 $this->data = $this->data + $data;
@@ -66,7 +66,7 @@
             return $this;
         }
         
-        public function expose($target = null, $data = null)
+        public function expose($target = null, $data = array())
         {
             if ($this->displayed) {
                 return false;
@@ -74,7 +74,7 @@
             if (isset($target)) {
                 $this->target = $target;
             }
-            $this->add_data($data);
+            $this->data($data);
             $this->add_baseData();
             $this->add_headers();
             
@@ -127,6 +127,7 @@
                     $headers .= "<script type=\"text/javascript\" src=\"".String::path_trim_root($href)."\"></script>";
                 }
             }
+            $headers .= "<base href=\"http://".$_SERVER['HTTP_HOST'].rtrim($_SERVER['REQUEST_URI'], "/")."/"."\">";
             $this->data['headers'] = $headers;
         }
         

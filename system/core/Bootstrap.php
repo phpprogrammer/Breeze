@@ -16,6 +16,9 @@
         ob_start('ob_gzhandler');
     }
     
+    App::$version = '0.1.3 α';
+    App::$author = 'Tomasz Sapeta';
+    
     if (defined('ENVIRONMENT')) {
         switch (ENVIRONMENT) {
             case 'development':
@@ -34,8 +37,22 @@
         define('ENVIRONMENT', 'production');
     }
     
-    App::$version = '0.1.2 α';
-    App::$author = 'Tomasz Sapeta';
+    $dump_paths = array(
+        CONFIG_PATH,
+        TEMP_PATH,
+        CACHE_PATH,
+        LOGS_PATH,
+        OPT_PATH
+    );
+    $error_paths = array();
+    foreach ($dump_paths as $path) {
+        if ('777' !== substr(sprintf('%o', fileperms($path)), -3)) {
+            $error_paths[] = $path;
+        }
+    }
+    if (!empty($error_paths)) {
+        new Error('repair_permissions', array('paths' => $error_paths));
+    }
     
     App::$db = new Database();
     App::$router = new Router();
@@ -46,6 +63,10 @@
     
     Session::start();
     App::$security = new Security();
+    
+    if (App::$memory->get('statistics') === true && App::$router->params['utility'] !== true) {
+        App::$statistic->loader();
+    }
     
     foreach (App::$memory->get('helpers_autoload') as $value) {
         if(is_readable($path = HELP_PATH.$value.'.php')) {
@@ -64,19 +85,21 @@
         Translator::setLang($params['language']);
         Translator::import('main');
     }
-    
+
+    $controller;
     if ($params['utility'] !== true) {
         App::$view->path(VIEW_PATH, STYLE_PATH . App::$memory->get('style') . DS);
-        App::loadController($params['controller'], $params['action'], $params['vars']);
+        $controller = App::loadController($params['controller'], $params['action'], $params['vars']);
     } else {
         define('SELF', UTL_PATH . rtrim($params['location'], DS) . DS);
         App::$view->path(SELF . 'views' . DS);
-        App::loadUtility($params['controller'], $params['action'], $params['vars']);
+        $controller = App::loadUtility($params['controller'], $params['action'], $params['vars']);
         $params['controller'] = String::leaveRoot($params['controller']);
     }
     
+    App::$db->quit();
     Session::save();
 
-    App::$view->expose($params['controller'].'_'.$params['action']);
+    App::$view->expose($params['controller'].'_'.$params['action'], $controller->_getData());
     
     ob_end_flush();

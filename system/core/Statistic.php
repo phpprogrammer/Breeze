@@ -14,10 +14,6 @@
         {
             $this->ua = App::$userAgent;
             if (! App::$db->existsTable('statistics')) { $this->build(); }
-            
-            if (App::$memory->get('statistics') === true && App::$router->params['utility'] !== true) {
-                $this->loader();
-            }
         }
         
         private function build()
@@ -40,7 +36,7 @@
             );
         }
         
-        private function loader()
+        public function loader()
         {
             $date = date('y-m-d');
             $ip = $_SERVER['REMOTE_ADDR'];
