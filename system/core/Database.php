@@ -15,6 +15,7 @@
         private $errorMsgFormat;
         private $cache;
         private $db_name;
+        private $changed_db = false;
         private static $instance;
     
         public static function setInstance(Database $instance)
@@ -44,6 +45,7 @@
     
             try {
                 parent::__construct($dsn, $memory->get('user'), $memory->get('password'), $options);
+                $this->useDatabase($this->db_name);
             } catch (PDOException $e) {
                 $this->error = $e->getMessage();
             }
@@ -219,9 +221,80 @@
         
         public function flush($table)
         {
-            $this->exec("flush table ".$table);
+            $this->exec("flush table ".$table.";");
         }
-    
+        
+        public function useDatabase($dbname)
+        {
+            $this->changed_db = true;
+            $this->exec("use ".$dbname.";");
+        }
+        
+        public function quit()
+        {
+            if ($this->changed_db === true) {
+                $this->exec("use ".$this->db_name.";");
+                $this->changed_db = false;
+            }
+        }
+        
+        public function showDatabases()
+        {
+            $dbs = $this->query("show databases;");
+            return $this->_toArray($dbs);
+        }
+        
+        public function showTables($dbname = "")
+        {
+            if (!empty($dbname)) {
+                $dbname = "in ". $dbname;
+            }
+            $tbs = $this->query("show tables ".$dbname.";");
+            return $this->_toArray($tbs);
+        }
+        
+        public function info($table = "", $dbname = "", $fields = "*")
+        {
+            if (empty($dbname)) {
+                $dbname = $this->db_name;
+            }
+            if (!empty($table)) {
+                $return = $this->select(
+                    'information_schema.tables',
+                    'TABLE_SCHEMA=:db and TABLE_NAME=:table',
+                    array('db' => $dbname, 'table' => $table), 
+                    $fields
+                );
+            } else {
+                $return = $this->select(
+                    'information_schema.schemata',
+                    'SCHEMA_NAME=:db',
+                    array('db' => $dbname),
+                    $fields
+                );
+            }
+            if (!empty($return)) {
+                return $return[0];
+            } else {
+                return null;
+            }
+        }
+        
+        public function getDatabasesSize()
+        {
+            $return = array();
+            $sel = $this->select(
+                'information_schema.tables group by table_schema',
+                null,
+                null,
+                'table_schema "name", Round(Sum(data_length + index_length) / 1024, 0) "size"'
+            );
+            foreach ($sel as $key => $value) {
+                $return[$value['name']] = $value['size'];
+            }
+            return $return;
+        }
+        
         public function createTable($table, $info, $primary_key = null, $engine = "InnoDB")
         {
             $sql = "create table if not exists " . $table . " (";
@@ -265,7 +338,17 @@
                 $this->errorMsgFormat = $errorMsgFormat;
             }
         }
-    
+        
+        private function _toArray(\PDOStatement $statement)
+        {
+            $return = array();
+            
+            while (($row = $statement->fetchColumn(0)) !== false) {
+                $return[] = $row;
+            }
+            return $return;
+        }
+        
         private function check_cache($sql)
         {
             $this->cache = new Cache($sql, CACHE_PATH.'database'.DS);
