@@ -1,8 +1,9 @@
 <?php
 	
-namespace system\libraries {
+namespace system\libraries;
 	
-	class LessCompiler {
+	class LessCompiler
+    {
 		static public $VERSION = "v0.3.5";
 		static protected $TRUE = array("keyword", "true");
 		static protected $FALSE = array("keyword", "false");
@@ -1231,7 +1232,7 @@ namespace system\libraries {
 	
 		// used for compiliation variable state
 		function pushEnv() {
-			$e = new stdclass;
+			$e = new \stdclass;
 			$e->parent = $this->env;
 	
 			$this->store = array();
@@ -1333,11 +1334,11 @@ namespace system\libraries {
 		}
 	
 		function newFormatter() {
-			$className = "lessc_formatter";
+			$className = "\\system\\libraries\\lessc_formatter";
 			if (!empty($this->formatterName)) {
 				if (!is_string($this->formatterName))
 					return $this->formatterName;
-				$className = "lessc_formatter_$this->formatterName";
+				$className = "\\system\\libraries\\lessc_formatter_$this->formatterName";
 			}
 	
 			return new $className;
@@ -1670,7 +1671,7 @@ namespace system\libraries {
 	
 			if (!self::$operatorString) {
 				self::$operatorString =
-					'('.implode('|', array_map(array('LessCompiler', 'preg_quote'),
+					'('.implode('|', array_map(array('\system\libraries\LessCompiler', 'preg_quote'),
 						array_keys(self::$precedence))).')';
 			}
 		}
@@ -2683,14 +2684,14 @@ namespace system\libraries {
 	
 			// TODO this depends on $this->count
 			if ($this->peek("(.*?)(\n|$)", $m, $count)) {
-				throw new exception("$msg: failed at `$m[1]` $loc");
+				throw new \exception("$msg: failed at `$m[1]` $loc");
 			} else {
-				throw new exception("$msg: $loc");
+				throw new \exception("$msg: $loc");
 			}
 		}
 	
 		protected function pushBlock($tags) {
-			$b = new stdclass;
+			$b = new \stdclass;
 			$b->parent = $this->env;
 	
 			$b->id = self::$nextBlockId++;
@@ -2881,4 +2882,3 @@ namespace system\libraries {
 			return $numLines > 0 ? 1 : 0;
 		}
 	}
-}
