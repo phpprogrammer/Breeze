@@ -219,6 +219,11 @@
             return $this->run($sql, $bind);
         }
         
+        public function describe($table)
+        {
+            return $this->run("describe ".$table.";");
+        }
+        
         public function flush($table)
         {
             $this->exec("flush table ".$table.";");
@@ -247,36 +252,67 @@
         public function showTables($dbname = "")
         {
             if (!empty($dbname)) {
-                $dbname = "in ". $dbname;
+                $dbname = "from ".$dbname;
             }
             $tbs = $this->query("show tables ".$dbname.";");
             return $this->_toArray($tbs);
         }
         
-        public function info($table = "", $dbname = "", $fields = "*")
+        public function showColumns($table)
         {
-            if (empty($dbname)) {
-                $dbname = $this->db_name;
-            }
             if (!empty($table)) {
-                $return = $this->select(
-                    'information_schema.tables',
-                    'TABLE_SCHEMA=:db and TABLE_NAME=:table',
-                    array('db' => $dbname, 'table' => $table), 
-                    $fields
-                );
-            } else {
-                $return = $this->select(
-                    'information_schema.schemata',
-                    'SCHEMA_NAME=:db',
-                    array('db' => $dbname),
-                    $fields
-                );
+                $table = "from ".$table;
             }
+            $cls = $this->query("show columns ".$table.";");
+            return $this->_toArray($cls);
+        }
+        
+        public function info($table = "", $fields = "*")
+        {
+            $dbname = "";
+            if (strpos($table, ".") === false) {
+                $dbname = $this->db_name;
+            } else {
+                list($dbname, $table) = explode('.', $table);
+            }
+            $return = $this->select(
+                'information_schema.tables',
+                'TABLE_SCHEMA=:db and TABLE_NAME=:table',
+                array('db' => $dbname, 'table' => $table), 
+                $fields
+            );
             if (!empty($return)) {
                 return $return[0];
             } else {
                 return null;
+            }
+        }
+        
+        public function infoSchema($dbname = "", $fields = "*")
+        {
+            if (empty($dbname)) {
+                $dbname = $this->db_name;
+            }
+            $return = $this->select(
+                'information_schema.schemata',
+                'SCHEMA_NAME=:db',
+                array('db' => $dbname),
+                $fields
+            );
+            if (!empty($return)) {
+                return $return[0];
+            } else {
+                return null;
+            }
+        }
+        
+        public function count($table)
+        {
+            $return = $this->select($table, null, null, 'count(*) "count"');
+            if (!empty($return)) {
+                return intval($return[0]['count']);
+            } else {
+                return 0;
             }
         }
         
