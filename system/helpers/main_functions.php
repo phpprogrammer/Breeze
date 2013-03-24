@@ -23,3 +23,8 @@
             echo "}<br/>";
         }
     }
+    
+    function import_view($viewName)
+    {
+        \system\core\Application::$view->import($viewName);
+    }
