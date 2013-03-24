@@ -130,7 +130,7 @@
                 $this->params['action'] = $this->defaultAction;
             }
             
-            $this->params['vars'] = $arr;
+            $this->params['vars'] = array_values($arr);
             $trace = $this->trace();
             
             if ($trace === false && ($this->params['utility'] === true || $this->memory->get('redirect_to_default', false))) {
@@ -148,7 +148,7 @@
                     unset($arr[$i]);
                 }
             }
-
+            
             $this->params['uri'] = $_SERVER['REQUEST_URI'];
             $this->params['self'] = $_SERVER['PHP_SELF'];
             $this->params['host'] = $_SERVER['HTTP_HOST'];
