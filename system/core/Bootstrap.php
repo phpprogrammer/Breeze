@@ -85,14 +85,14 @@
         Translator::setLang($params['language']);
         Translator::import('main');
     }
-
+    
     $controller;
     if ($params['utility'] !== true) {
-        App::$view->path(VIEW_PATH, STYLE_PATH . App::$memory->get('style') . DS);
+        App::$view->path(VIEW_PATH);
         $controller = App::loadController($params['controller'], $params['action'], $params['vars']);
     } else {
         define('SELF', UTL_PATH . rtrim($params['location'], DS) . DS);
-        App::$view->path(SELF . 'views' . DS);
+        App::$view->path(SELF.'views'.DS, SELF.'styles'.DS, SELF.'scripts'.DS);
         $controller = App::loadUtility($params['controller'], $params['action'], $params['vars']);
         $params['controller'] = String::leaveRoot($params['controller']);
     }
