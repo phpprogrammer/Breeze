@@ -16,13 +16,15 @@
         private $mode = 0;
         private static $instance;
         private $stylePath;
+        private $scriptPath;
         private $css = array();
         private $scripts = array();
         
         public function __construct()
         {
             $this->path = VIEW_PATH;
-            $this->stylePath = STYLE_PATH . Application::$memory->get('style') . DS;
+            $this->stylePath = STYLE_PATH . Application::$memory->get('style', 'default') . DS;
+            $this->scriptPath = SCRIPTS_PATH;
             self::setInstance($this);
             return $this;
         }
@@ -44,13 +46,17 @@
             }
         }
         
-        public function path($path, $stylePath = "")
+        public function path($path, $stylePath = "", $scriptPath = "")
         {
             if (empty($stylePath)) {
-                $stylePath = $path;
+                $stylePath = STYLE_PATH . Application::$memory->get('style', 'default') . DS;
+            }
+            if (empty($scriptPath)) {
+                $scriptPath = SCRIPTS_PATH;
             }
             $this->path = rtrim($path, DS) . DS;
             $this->stylePath = rtrim($stylePath, DS) . DS;
+            $this->scriptPath = rtrim($scriptPath, DS) . DS;
             return $this;
         }
         
@@ -87,6 +93,11 @@
             }
         }
         
+        public function import($viewName)
+        {
+            include $this->path.$viewName.'.php';
+        }
+        
         public function turnOff()
         {
             $this->displayed = true;
@@ -99,8 +110,9 @@
         
         private function add_baseData()
         {
-            $this->data['baseurl'] = DEFAULT_PATH.VIEW_PATH;
+            $this->data['baseurl'] = VIEW_PATH;
             $this->data['def_path'] = DEFAULT_PATH;
+            $this->data['uri'] = App::$router->params['uri'];
         }
         
         private function add_headers()
@@ -114,14 +126,14 @@
             }
             
             if (! empty($this->css) && $href = $this->getCSS() ) {
-                if (App::$memory->get('reduce_http_requests')) {
+                if (App::$memory->get('reduce_http_requests', false)) {
                     $headers .= "<style type=\"text/css\">".file_get_contents($href)."</style>";
                 } else {
                     $headers .= "<link rel=\"stylesheet\" type=\"text/css\" href=\"".String::path_trim_root($href)."\" />";
                 }
             }
             if (! empty($this->scripts) && $href = $this->getScripts() ) {
-                if (App::$memory->get('reduce_http_requests')) {
+                if (App::$memory->get('reduce_http_requests', false)) {
                     $headers .= "<script type=\"text/javascript\">".file_get_contents($href)."</script>";
                 } else {
                     $headers .= "<script type=\"text/javascript\" src=\"".String::path_trim_root($href)."\"></script>";
@@ -137,13 +149,11 @@
     
             foreach ($args as $path) {
                 $e = String::extension($path);
-                
-                if (is_readable($this->stylePath.$path)) {
-                    if ($e == 'css' || $e == 'less') {
-                        $this->css[] = $path;
-                    } else if ($e == 'js') {
-                        $this->scripts[] = $path;
-                    }
+
+                if (($e == 'css' || $e == 'less') && is_readable($this->stylePath.$path)) {
+                    $this->css[] = $path;
+                } else if ($e == 'js' && is_readable($this->scriptPath.$path)) {
+                    $this->scripts[] = $path;
                 }
             }
             return $this;
@@ -161,6 +171,6 @@
         
         private function getScripts()
         {
-            return Optimization::joinFiles(SCRIPTS_PATH, $this->scripts, Application::$memory->get('js_compression'));
+            return Optimization::joinFiles($this->scriptPath, $this->scripts, Application::$memory->get('js_compression'));
         }
     }
