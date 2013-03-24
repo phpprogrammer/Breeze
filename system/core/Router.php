@@ -110,31 +110,37 @@
             }
             
             if (isset($arr[0])) {
-                $this->params['controller'] = String::path_wrap($this->params['location'], 2) . $arr[0];
-                array_shift($arr);
-            } else {
+                $path = String::path_wrap($this->params['location'], 2) . $arr[0];
+                if ($this->issetController($path, $this->params['utility'])) {
+                    $this->params['controller'] = $path;
+                    array_shift($arr);
+                }
+            }
+            if (empty($this->params['controller'])) {
                 $this->params['controller'] = String::path_wrap($this->params['location'], 2) . $this->defaultController;
             }
-            
+
             if (isset($arr[0])) {
-                $this->params['action'] = $arr[0];
-                array_shift($arr);
-            } else {
+                if ($this->issetAction($this->params['controller'], $arr[0])) {
+                    $this->params['action'] = $arr[0];
+                    array_shift($arr);
+                }
+            }
+            if (empty($this->params['action'])) {
                 $this->params['action'] = $this->defaultAction;
             }
-
+            
             $this->params['vars'] = $arr;
-
             $trace = $this->trace();
             
             if ($trace === false && ($this->params['utility'] === true || $this->memory->get('redirect_to_default', false))) {
                 array_unshift($this->params['vars'], $this->params['action']);
-                $this->params['controller'] = $this->defaultController;
+                $this->params['controller'] = String::path_wrap($this->params['location'], 2) . $this->defaultController;
                 $this->params['action'] = $this->defaultAction;
             } elseif ($trace === false) {
                 new Error('404');
             }
-            
+                    
             $arr =& $this->params['vars'];
             for ($i = 0; $i < count($arr); $i++) {
                 if (isset($arr[$i]) && ($key = strstr($arr[$i], '=', true))) {
@@ -256,5 +262,17 @@
                 $path = CTRL_PATH;
             }
             return is_readable(rtrim($path, DS).DS.trim($controller, DS).'.php');
+        }
+        
+        private function issetAction($controller, $action, $utility = false)
+        {
+            if ($utility) {
+                $path = UTL_PATH;
+                $ns = "\\system\\utilities\\";
+            } else {
+                $path = CTRL_PATH;
+                $ns = "\\application\\controllers\\";
+            }
+            return method_exists($ns.str_replace(DS, "\\", $controller), $action);
         }
     }
