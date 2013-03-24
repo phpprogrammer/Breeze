@@ -1,5 +1,4 @@
 <?php
-    
-    $user_id = true;
-    $ip_address = true;
-    $max_lines = 20;
+	$ip_address = true;
+	$max_lines = 20;
+	$user_id = true;

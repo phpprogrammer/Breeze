@@ -1,7 +1,6 @@
 <?php
-
-    $driver = 'mysql';
-    $database = 'framework';
+	$database = 'framework';
+	$driver = 'mysql';
 	$host = 'localhost';
 	$password = 'mysqlpass';
 	$port = '';

@@ -1,18 +1,18 @@
 <?php
 	$activity_expiry_time = 90;
 	$adm_style = 'default';
-    $cache_expiry = 0;
+	$cache_expiry = 0;
 	$css_compression = true;
 	$gzip_compression = true;
 	$gzip_compression_level = 1;
-	$helpers_autoload = array('main_functions');
+	$helpers_autoload = array (  0 => 'main_functions',);
 	$js_compression = true;
-    $languages = array('pl' => 'Polski', 'en' => 'English');
+	$languages = array (  'pl' => 'Polski',  'en' => 'English',);
 	$load_user_interfaces = true;
-	$lock_time_login_failed = 900;
 	$lock_time_captcha_failed = 300;
-	$max_login_failed_attempts = 3;
+	$lock_time_login_failed = 900;
 	$max_captcha_failed_attempts = 5;
+	$max_login_failed_attempts = 3;
 	$multilingual = true;
 	$reduce_http_requests = true;
 	$site_disabled = false;
