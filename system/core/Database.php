@@ -246,7 +246,7 @@
         public function showDatabases()
         {
             $dbs = $this->query("show databases;");
-            return $this->_toArray($dbs);
+            return $this->_toArray($dbs, true);
         }
         
         public function showTables($dbname = "")
@@ -255,7 +255,7 @@
                 $dbname = "from ".$dbname;
             }
             $tbs = $this->query("show tables ".$dbname.";");
-            return $this->_toArray($tbs);
+            return $this->_toArray($tbs, true);
         }
         
         public function showColumns($table)
@@ -375,12 +375,15 @@
             }
         }
         
-        private function _toArray(\PDOStatement $statement)
+        private function _toArray(\PDOStatement $statement, $sort = false)
         {
             $return = array();
             
             while (($row = $statement->fetchColumn(0)) !== false) {
                 $return[] = $row;
+            }
+            if ($sort) {
+                sort($return);
             }
             return $return;
         }
