@@ -139,7 +139,7 @@
                     $headers .= "<script type=\"text/javascript\" src=\"".String::path_trim_root($href)."\"></script>";
                 }
             }
-            $headers .= "<base href=\"http://".$_SERVER['HTTP_HOST'].rtrim($_SERVER['REQUEST_URI'], "/")."/"."\">";
+            $headers .= "<base href=\"http://".String::glue($_SERVER['HTTP_HOST'], DEFAULT_PATH)."\">";
             $this->data['headers'] = $headers;
         }
         
