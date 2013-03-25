@@ -1,7 +1,6 @@
 <?php	
 	define('DS', DIRECTORY_SEPARATOR);
 	define('ROOT', rtrim(dirname(__FILE__), DS) . DS);
-	define('DEFAULT_PATH', $_SERVER['SCRIPT_NAME']);
 	require_once(ROOT . 'system/defaults/paths.php');
 		
 	function __autoload($path) {
@@ -10,7 +9,9 @@
 			require_once($path);
 		}
 	}
-	
+    use \system\core\String;
+	define('DEFAULT_PATH', String::path_wrap(String::rtrim($_SERVER['SCRIPT_NAME'], "index.php")));
+
 	// 'development' || 'testing' || 'production'
 	define('ENVIRONMENT', 'development');
 	
