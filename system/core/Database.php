@@ -347,7 +347,12 @@
             echo $sql ."<br/>";
             return $this->exec($sql);
         }
-    
+        
+        public function issetTable($table, $db_name = "")
+        {
+            return in_array($table, $this->showTables($db_name));
+        }
+        
         public function existsTable($table, $db_name = null)
         {
             if (! isset($db_name)) {
