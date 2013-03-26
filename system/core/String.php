@@ -89,7 +89,7 @@
         
         public static function rtrim($haystack, $needle)
         {
-            if (($pos = stripos($haystack, $needle)) === strlen($haystack) - strlen($needle)) {
+            if (($pos = strripos($haystack, $needle)) === strlen($haystack) - strlen($needle)) {
                 return substr($haystack, 0, $pos);
             }
             return $haystack;
