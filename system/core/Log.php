@@ -9,27 +9,35 @@
         private $path;
         private $memory;
         
-        public function __construct($path = LOGS_PATH)
+        public function __construct($path)
         {
-            $this->path = $path;
+            if (! String::is_path($path)) {
+                $this->path = LOGS_PATH . $path . ".log";
+            }
             $this->memory = new Memory('logs');
         }
         
-        public function write($text, $type = "info")
+        public function write($text, $type = "")
         {
             $message = "[".date('d-m-Y H:i:s')."] ";
             
             if ($this->memory->get('ip_address')) {
-                $message .= "[IP: ".$_SERVER['REMOTE_ADDR']."] ";
+                $message .= " [IP: ".$_SERVER['REMOTE_ADDR']."]";
             }
             if ($this->memory->get('user_id')) {
-                $message .= "[UID: ".Session::getUserID()."] ";
+                $message .= " [UID: ".Session::getUserID()."]";
             }
+            if (! empty($type)) {
+                $message .= " [".strtoupper($type)."]";
+            }
+            $message .= ": ".ucfirst($text);
+            $message = trim($message).PHP_EOL;
             
-            $message .= "[".strtoupper($type)."]: ".ucfirst($text) . PHP_EOL;
-            $file = file($this->path);
-            if (count($file) + 1 > $this->memory->get('max_lines', 25)) {
-                $this->shift();
+            if (is_readable($this->path)) {
+                $file = file($this->path);
+                if (count($file) + 1 > $this->memory->get('max_lines', 25)) {
+                    $this->shift();
+                }
             }
             file_put_contents($this->path, $message, FILE_APPEND);
         }
