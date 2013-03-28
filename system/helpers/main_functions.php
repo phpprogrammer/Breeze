@@ -28,3 +28,13 @@
     {
         \system\core\Application::$view->import($viewName);
     }
+    
+    if (! function_exists("array_column")) {
+        function array_column($array, $column)
+        {
+            foreach ($array as $row) {
+                $ret[] = $row[$column];
+            }
+            return $ret;
+        }
+    }
