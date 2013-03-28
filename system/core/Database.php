@@ -96,7 +96,7 @@
         public function delete($table, $where, $bind = "")
         {
             $sql = "DELETE FROM " . $table . " WHERE " . $where . ";";
-            $this->run($sql, $bind);
+            return $this->run($sql, $bind);
         }
     
         private function filter($table, $info)
@@ -219,6 +219,25 @@
             return $this->run($sql, $bind);
         }
         
+        public function alter($target, $actions, $bind = "")
+        {
+            $target = trim($target);
+            $actions = trim($actions);
+            if (stripos($target, 'database') !== 0 && stripos($target, 'table') !== 0) {
+                if (strpos($target, '.') > 0) {
+                    $target = "table ".$target;
+                } else {
+                    $target = "database ".$database;
+                }
+            }
+            if (!empty($bind)) {
+                foreach ($bind as $key => $value) {
+                    $actions = str_replace(':'.$key, $value, $actions);
+                }
+            }
+            return $this->run("alter ".$target." ".$actions.";");
+        }
+        
         public function describe($table)
         {
             return $this->run("describe ".$table.";");
@@ -249,22 +268,32 @@
             return $this->_toArray($dbs, true);
         }
         
-        public function showTables($dbname = "")
+        public function showTables($schema = "")
         {
-            if (!empty($dbname)) {
-                $dbname = "from ".$dbname;
+            if (!empty($schema)) {
+                $schema = "from ".$schema;
             }
-            $tbs = $this->query("show tables ".$dbname.";");
+            $tbs = $this->query("show tables ".$schema.";");
             return $this->_toArray($tbs, true);
         }
         
-        public function showColumns($table)
+        public function showColumns($table = "")
         {
             if (!empty($table)) {
                 $table = "from ".$table;
             }
             $cls = $this->query("show columns ".$table.";");
             return $this->_toArray($cls);
+        }
+        
+        public function showEngines($fields = "*")
+        {
+            return $this->select('information_schema.engines', 'not support="NO" and not engine="PERFORMANCE_SCHEMA" order by "engine" asc', '', $fields);
+        }
+        
+        public function showCollation($fields = "*")
+        {
+            return $this->select('information_schema.collations', '1 order by "collation_name" asc', '', $fields);
         }
         
         public function info($table = "", $fields = "*")
@@ -348,24 +377,49 @@
             return $this->exec($sql);
         }
         
-        public function issetTable($table, $db_name = "")
+        public function issetTable($table, $schema = "")
         {
-            return in_array($table, $this->showTables($db_name));
+            return in_array($table, $this->showTables($schema));
         }
         
-        public function existsTable($table, $db_name = null)
+        public function existsTable($table, $schema = null)
         {
-            if (! isset($db_name)) {
-                $db_name = $this->db_name;
+            if (! isset($schema)) {
+                $schema = $this->db_name;
             }
             try {
-                $result = $this->select("information_schema.tables", "table_schema=:schema and table_name=:name limit 1", array('schema' => $db_name, 'name' => $table));
+                $result = $this->select("information_schema.tables", "table_schema=:schema and table_name=:name limit 1", array('schema' => $schema, 'name' => $table));
             } catch (Exception $e) {
                 return false;
             }
             return count($result) > 0 ? true : false;
         }
-    
+        
+        public function renameTable($old, $new, $schema)
+        {
+            if (!is_array($old)) {
+                $old = array($old);
+            }
+            if (!is_array($new)) {
+                $new = array($new);
+            }
+            $sql = "rename table ";
+            foreach ($old as $index => $value) {
+                if (!isset($new[$index])) {
+                    break;
+                }
+                if (isset($schema)) {
+                    $value = $schema.".".$value;
+                    $new[$index] = $schema.".".$new[$index];
+                }
+                if ($index !== 0)
+                    $sql .= ", ";
+                $sql .= $value." to ".$new[$index];
+            }
+            $this->run($sql.";");
+            return true;
+        }
+        
         public function setErrorCallbackFunction($errorCallbackFunction, $errorMsgFormat="html")
         {
             if (in_array(strtolower($errorCallbackFunction), array("echo", "print"))) {
