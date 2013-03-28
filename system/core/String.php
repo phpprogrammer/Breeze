@@ -95,6 +95,16 @@
             return $haystack;
         }
         
+        public static function toJSON($obj)
+        {
+            return json_encode($obj);
+        }
+        
+        public static function fromJSON($json)
+        {
+            return json_decode($json, true);
+        }
+        
         public static function camelize($str, $lcfirst = true)
         {
             $str = preg_replace("/([_-\s]?([a-z0-9]+))/e", "ucwords('\\2')", $str);
