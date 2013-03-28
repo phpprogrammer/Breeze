@@ -6,7 +6,7 @@
         
     class Router
     {
-        public $params = array('utility' => false);
+        public $params = array('utility' => false, 'base_uri' => '');
         private $url = '';
         private $splitter;
         private $defaultController;
@@ -77,6 +77,7 @@
             
             if (isset($arr[0]) && $arr[0] === '!') {
                 $this->params['utility'] = true;
+                $this->params['base_uri'] .= '!/';
                 array_shift($arr);
                 $path = UTL_PATH;
             } else {
@@ -84,6 +85,7 @@
             }
             
             while (isset($arr[0]) && is_dir($path.$arr[0])) {
+                $this->params['base_uri'] .= $arr[0].'/';
                 $path = rtrim($path, DS).DS.$arr[0].DS;
                 array_shift($arr);
             }
