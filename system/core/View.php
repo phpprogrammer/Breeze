@@ -95,6 +95,7 @@
         
         public function import($viewName)
         {
+            extract($this->data);
             include $this->path.$viewName.'.php';
         }
         
@@ -139,7 +140,7 @@
                     $headers .= "<script type=\"text/javascript\" src=\"".String::path_trim_root($href)."\"></script>";
                 }
             }
-            $headers .= "<base href=\"http://".String::glue($_SERVER['HTTP_HOST'], Application::$router->params['base_uri'])."\">";
+            $headers .= "<base href=\"http://".String::glue($_SERVER['HTTP_HOST'], App::$router->params['base_uri'])."\">";
             $this->data['headers'] = $headers;
         }
         
