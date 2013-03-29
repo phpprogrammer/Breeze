@@ -85,7 +85,7 @@
         Translator::setLang($params['language']);
         Translator::import('main');
     }
-    
+
     $controller;
     if ($params['utility'] !== true) {
         App::$view->path(VIEW_PATH);
