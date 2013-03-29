@@ -240,7 +240,18 @@
         
         public function describe($table)
         {
-            return $this->run("describe ".$table.";");
+            $result = $this->run("describe ".$table.";");
+            if (!empty($result)) {
+                foreach ($result as $index => $row) {
+                    $pos = strpos($row['Type'], '(');
+                    $result[$index]['DataType'] = substr($row['Type'], 0, $pos == false ? strlen($row['Type']) : $pos);
+                    $result[$index]['Length'] = filter_var($row['Type'], FILTER_SANITIZE_NUMBER_INT);
+                    $result[$index]['Default'] = $row['Default'] === 'NULL' ? '' : $row['Default'];
+                    $result[$index]['Auto_increment'] = stripos($row['Extra'], 'auto_increment') !== false;
+                    $result[$index]['Null'] = $row['Null'] === 'YES';
+                }
+            }
+            return $result;
         }
         
         public function flush($table)
