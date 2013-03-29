@@ -17,6 +17,10 @@
         public function __construct()
         {
             $this->memory = new Memory('routing');
+            
+            if ($this->isAjax() && $this->memory->get('reject_ajax_requests', true) === true) {
+                die();
+            }
             $this->sitemap = new Memory(DEF_PATH.'sitemap.php');
             
             $this->splitter = $this->memory->get('splitter', '/');
@@ -68,6 +72,11 @@
         public function getSitemap()
         {
             return unserialize($this->sitemap->get('sitemap'));
+        }
+        
+        public function isAjax()
+        {
+            return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
         }
         
         private function route()
