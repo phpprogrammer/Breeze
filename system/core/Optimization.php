@@ -3,10 +3,6 @@
     namespace system\core;
     
     defined('ROOT') or die();
-    
-    use \system\libraries\CSSMin;
-    use \system\libraries\JSMin;
-    use \system\libraries\LessCompiler;
 
     class Optimization
     {
@@ -20,8 +16,8 @@
     
             $content = '';
             $ext = String::extension($array[0]);
-            $ext = $ext == 'less' ? 'css' : $ext;
-            $end = substr(sha1(serialize($array)), 0, 10).".{$ext}";
+            $ext = $ext === 'less' ? 'css' : $ext;
+            $end = substr(sha1(serialize($array)), 0, 10).".".$ext;
             
             if (file_exists($target.$end)) {
                 $targetTime = filectime($target.$end);
@@ -34,16 +30,20 @@
             }
             
             if (! file_exists($target.$end)) {
+                $lessContent = '';
                 foreach ($array as $file) {
                     if (! file_exists($path.$file)) {
                         continue;
                     }
                     if (String::extension($path.$file) == 'less') {
-                        $less = new LessCompiler();
-                        $content .= $less->parse(str_replace('[$dir]', substr($path, strlen(ROOT)), file_get_contents($path.$file)));
+                        $lessContent .= str_replace('[$dir]', substr($path, strlen(ROOT)), file_get_contents($path.$file));
                     } else {
                         $content .= str_replace('[$dir]', substr($path, strlen(ROOT)), file_get_contents($path.$file));
                     }
+                }
+                if (!empty($lessContent)) {
+                    $less = new LessCompiler();
+                    $content .= $less->parse($lessContent);
                 }
                 file_put_contents($target.$end, $content);
                 if ($compress) {
