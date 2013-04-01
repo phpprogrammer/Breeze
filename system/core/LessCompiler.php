@@ -1,6 +1,6 @@
 <?php
 	
-namespace system\libraries;
+    namespace system\core;
 	
 	class LessCompiler
     {
@@ -1334,11 +1334,11 @@ namespace system\libraries;
 		}
 	
 		function newFormatter() {
-			$className = "\\system\\libraries\\lessc_formatter";
+			$className = "\\system\\core\\lessc_formatter";
 			if (!empty($this->formatterName)) {
 				if (!is_string($this->formatterName))
 					return $this->formatterName;
-				$className = "\\system\\libraries\\lessc_formatter_$this->formatterName";
+				$className = "\\system\\core\\lessc_formatter_$this->formatterName";
 			}
 	
 			return new $className;
@@ -1671,7 +1671,7 @@ namespace system\libraries;
 	
 			if (!self::$operatorString) {
 				self::$operatorString =
-					'('.implode('|', array_map(array('\system\libraries\LessCompiler', 'preg_quote'),
+					'('.implode('|', array_map(array('\system\core\LessCompiler', 'preg_quote'),
 						array_keys(self::$precedence))).')';
 			}
 		}
