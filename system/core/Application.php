@@ -12,7 +12,6 @@
         public static $memory;
         public static $router;
         public static $security;
-        public static $statistic;
         public static $timers = array();
         public static $userAgent;
         public static $version;
