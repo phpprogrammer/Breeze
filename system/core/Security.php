@@ -14,6 +14,9 @@
         {
             $this->memory = new Memory('security');
             $this->blacklistPath = DEF_PATH.'blacklist.txt';
+            if (!file_exists($this->blacklistPath)) {
+                file_put_contents($this->blacklistPath, '');
+            }
             $this->blacklist = file($this->blacklistPath);
             
             if ($this->memory->get('anti_flooding', true)) {
