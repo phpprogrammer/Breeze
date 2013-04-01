@@ -8,15 +8,15 @@
     
     ini_set('short_open_tag', 1);
     
-    App::$memory = new Memory('configuration', DEF_PATH.'configuration.php');
+    App::$memory = new Memory('configuration');
     App::$timers['page_loading'] = new Timer();
     
-    if (function_exists('ob_gzhandler') && App::$memory->get('gzip_compression') && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) {
-        ini_set('zlib.output_compression_level', App::$memory->get('gzip_compression_level'));
+    if (function_exists('ob_gzhandler') && App::$memory->get('gzip_compression', false) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) {
+        ini_set('zlib.output_compression_level', App::$memory->get('gzip_compression_level', 1));
         ob_start('ob_gzhandler');
     }
     
-    App::$version = '0.1.3 α';
+    App::$version = 0.15;
     App::$author = 'Tomasz Sapeta';
     
     if (defined('ENVIRONMENT')) {
@@ -58,17 +58,17 @@
     App::$router = new Router();
     App::$view = new View();
     App::$userAgent = new UserAgent();
-    App::$statistic = new Statistic();
     App::$log = new Log(LOGS_PATH.'framework.log');
     
     Session::start();
     App::$security = new Security();
     
-    if (App::$memory->get('statistics') === true && App::$router->params['utility'] !== true) {
-        App::$statistic->loader();
+    if (App::$memory->get('statistics', false) === true && App::$router->params['utility'] !== true) {
+        $stats = new Statistic();
+        $stats->loader();
     }
     
-    foreach (App::$memory->get('helpers_autoload') as $value) {
+    foreach (App::$memory->get('helpers_autoload', array('main_functions')) as $value) {
         if(is_readable($path = HELP_PATH.$value.'.php')) {
             require $path;
         }
@@ -78,6 +78,12 @@
         file_put_contents(ROOT.'.htaccess', file_get_contents(DEF_PATH.'htaccess'));
     }
     
+    if (App::$memory->get('auto_updates', false) === true) {
+        $su = new SystemUpdate();
+        if ($su->checkUpdate() !== false) {
+            $su->update();
+        }
+    }
     
     $params = App::$router->params;
     
