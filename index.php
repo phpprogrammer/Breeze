@@ -10,7 +10,7 @@
 		}
 	}
     use \system\core\String;
-	define('DEFAULT_PATH', String::path_wrap(String::rtrim($_SERVER['SCRIPT_NAME'], "index.php")));
+	define('DEFAULT_PATH', String::path_wrap(String::rbreak($_SERVER['SCRIPT_NAME'], "index.php")));
 
 	// 'development' || 'testing' || 'production'
 	define('ENVIRONMENT', 'development');

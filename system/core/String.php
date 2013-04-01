@@ -17,9 +17,9 @@
             return str_replace(array('/', '\\', '!', '@', '#', '$', '%', '^', '&', '*', '<', '>', '?'), '', $path);
         }
         
-        public static function path_trim_root($path = "", $wrap = 1)
+        public static function path_trim_root($path = "", $wrap = 0)
         {
-            return self::path_wrap(substr($path, strlen(ROOT)), 1);
+            return self::path_wrap(substr($path, strlen(ROOT)), $wrap);
         }
         
         public static function path_trim($path, $opt = 0)
@@ -79,7 +79,7 @@
             return implode(DS, $exp);
         }
         
-        public static function ltrim($haystack, $needle)
+        public static function lbreak($haystack, $needle)
         {
             if (stripos($haystack, $needle) === 0) {
                 return substr($haystack, strlen($needle));
@@ -87,7 +87,7 @@
             return $haystack;
         }
         
-        public static function rtrim($haystack, $needle)
+        public static function rbreak($haystack, $needle)
         {
             if (($pos = strripos($haystack, $needle)) === strlen($haystack) - strlen($needle)) {
                 return substr($haystack, 0, $pos);
