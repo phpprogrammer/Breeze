@@ -11,20 +11,23 @@
         
         public function __construct($path)
         {
+            $this->memory = new Memory('logs');
+            
             if (! String::is_path($path)) {
                 $this->path = LOGS_PATH . $path . ".log";
+            } else {
+                $this->path = $path;
             }
-            $this->memory = new Memory('logs');
         }
         
         public function write($text, $type = "")
         {
             $message = "[".date('d-m-Y H:i:s')."] ";
             
-            if ($this->memory->get('ip_address')) {
+            if ($this->memory->get('ip_address', true) === true) {
                 $message .= " [IP: ".$_SERVER['REMOTE_ADDR']."]";
             }
-            if ($this->memory->get('user_id')) {
+            if ($this->memory->get('user_id', true) === true && class_exists("Session")) {
                 $message .= " [UID: ".Session::getUserID()."]";
             }
             if (! empty($type)) {
@@ -33,13 +36,13 @@
             $message .= ": ".ucfirst($text);
             $message = trim($message).PHP_EOL;
             
+            file_put_contents($this->path, $message, FILE_APPEND);
             if (is_readable($this->path)) {
                 $file = file($this->path);
-                if (count($file) + 1 > $this->memory->get('max_lines', 25)) {
+                if (count($file) + 1 > $this->memory->get('max_lines', 100)) {
                     $this->shift();
                 }
             }
-            file_put_contents($this->path, $message, FILE_APPEND);
         }
         
         public function info($message)
@@ -75,7 +78,7 @@
             $file = file($this->path);
             for ($i = 0; $i < $count; $i++) {
                 if (isset($file[0])) {
-                    array_shift($file);
+                    unset($file[0]);
                 } else {
                     break;
                 }
