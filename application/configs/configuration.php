@@ -1,6 +1,7 @@
 <?php
 	$activity_expiry_time = 90;
 	$adm_style = 'default';
+	$auto_updates = false;
 	$cache_expiry = 0;
 	$css_compression = true;
 	$gzip_compression = true;
