@@ -36,16 +36,7 @@
             if (!empty($name)) {
                 $this->__dir = ltrim(dirname($name), '.');
             }
-            
-            if ($utl === false) {
-                if ($this->access->isAllowed('www/'.$name.'/'.$action) === false) {
-                    new Error('403');
-                }
-            } else {
-                if (! $this->access->isRoot()) {
-                    //new Error('403');
-                }
-            }
+            return $this;
         }
         
         final protected function _set($key, $value)
