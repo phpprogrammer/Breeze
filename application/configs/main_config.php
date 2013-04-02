@@ -13,6 +13,7 @@
 	$lock_time_captcha_failed = 300;
 	$lock_time_login_failed = 900;
 	$max_captcha_failed_attempts = 5;
+    $max_execution_time = 30;
 	$max_login_failed_attempts = 3;
 	$multilingual = true;
 	$reduce_http_requests = true;
