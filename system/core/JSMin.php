@@ -35,7 +35,7 @@
             switch($command) {
                 case self::ACTION_KEEP_A:
                     $this->output .= $this->a;
-                    break;
+
                 case self::ACTION_DELETE_A:
                     $this->a = $this->b;
                     
@@ -58,7 +58,6 @@
                             }
                         }
                     }
-                    break;
                 case self::ACTION_DELETE_A_B:
                     $this->b = $this->next();
                     
@@ -97,7 +96,6 @@
                         }
                         $this->b = $this->next();
                     }
-                    break;
             }
         }
         
