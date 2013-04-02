@@ -6,10 +6,11 @@
     
     use \system\core\Application as App;
     
-    ini_set('short_open_tag', 1);
-    
-    App::$memory = new Memory('configuration');
+    App::$memory = new Memory('main_config');
     App::$timers['page_loading'] = new Timer();
+    
+    ini_set('short_open_tag', 1);
+    ini_set('max_execution_time', intval(App::$memory->get('max_execution_time', 30)));
     
     if (function_exists('ob_gzhandler') && App::$memory->get('gzip_compression', false) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) {
         ini_set('zlib.output_compression_level', App::$memory->get('gzip_compression_level', 1));

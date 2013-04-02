@@ -4,6 +4,8 @@
     
     defined('ROOT') or die();
     
+    ini_set('max_execution_time', 60);
+    
     class SystemUpdate
     {
         public $currentVersion;
