@@ -152,9 +152,12 @@
                 $e = String::extension($path);
 
                 if (($e == 'css' || $e == 'less') && is_readable($this->stylePath.$path)) {
-                    $this->css[] = $path;
+                    $this->css[] = $this->stylePath.$path;
+                    echo $this->stylePath.$path;
                 } else if ($e == 'js' && is_readable($this->scriptPath.$path)) {
-                    $this->scripts[] = $path;
+                    $this->scripts[] = $this->scriptPath.$path;
+                } else if ($e == 'js' && is_readable(SYS_PATH.'scripts'.DS.$path)) {
+                    $this->scripts[] = SYS_PATH.'scripts'.DS.$path;
                 }
             }
             return $this;
@@ -167,11 +170,11 @@
         
         private function getCSS()
         {
-            return Optimization::joinFiles($this->stylePath, $this->css, Application::$memory->get('css_compression'));
+            return Optimization::joinFiles($this->css, Application::$memory->get('css_compression'));
         }
         
         private function getScripts()
         {
-            return Optimization::joinFiles($this->scriptPath, $this->scripts, Application::$memory->get('js_compression'));
+            return Optimization::joinFiles($this->scripts, Application::$memory->get('js_compression'));
         }
     }

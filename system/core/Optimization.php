@@ -7,7 +7,7 @@
     class Optimization
     {
         
-        public static function joinFiles($path, $array, $compress = false)
+        public static function joinFiles($array, $compress = false)
         {
             $target = OPT_PATH;
             if (! is_dir($target)) {
@@ -22,7 +22,7 @@
             if (file_exists($target.$end)) {
                 $targetTime = filectime($target.$end);
                 foreach ($array as $file) {
-                    if (file_exists($path.$file) && $targetTime < filectime($path.$file)) {
+                    if (file_exists($file) && $targetTime < filectime($file)) {
                         unlink($target.$end);
                         break;
                     }
@@ -32,13 +32,13 @@
             if (! file_exists($target.$end)) {
                 $lessContent = '';
                 foreach ($array as $file) {
-                    if (! file_exists($path.$file)) {
+                    if (! file_exists($file)) {
                         continue;
                     }
-                    if (String::extension($path.$file) == 'less') {
-                        $lessContent .= str_replace('[$dir]', substr($path, strlen(ROOT)), file_get_contents($path.$file));
+                    if (String::extension($file) == 'less') {
+                        $lessContent .= str_replace('[$dir]', substr(dirname($file), strlen(ROOT)), file_get_contents($file));
                     } else {
-                        $content .= str_replace('[$dir]', substr($path, strlen(ROOT)), file_get_contents($path.$file));
+                        $content .= str_replace('[$dir]', substr(dirname($file), strlen(ROOT)), file_get_contents($file));
                     }
                 }
                 if (!empty($lessContent)) {
