@@ -54,7 +54,7 @@
             }
             $path = LANG_PATH . $lang . DS . $name . '.php';
             if (is_readable($path)) {
-                include_once($path);
+                include($path);
                 return true;
             }
             return false;

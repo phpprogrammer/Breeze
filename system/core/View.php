@@ -88,7 +88,7 @@
             
             if ($this->viewExists()) {
                 $timer = App::$timers['page_loading']->stop();
-                include_once $this->path.$this->target.'.php';
+                include($this->path.$this->target.'.php');
                 $this->displayed = true;
             }
         }

@@ -1,12 +1,12 @@
 <?php	
 	define('DS', DIRECTORY_SEPARATOR);
 	define('ROOT', rtrim(dirname(__FILE__), DS) . DS);
-	require_once(ROOT . 'system/defaults/paths.php');
+	require(ROOT . 'system/defaults/paths.php');
 		
 	function __autoload($path) {
 		$path = ROOT . str_replace('\\', DS, $path) . '.php';
 		if(is_readable($path)) {
-			require_once($path);
+			require($path);
 		}
 	}
     use \system\core\String;
@@ -17,4 +17,4 @@
 	
 	// And away we go...
 	
-	require_once(CORE_PATH . 'Bootstrap.php');
+	require(CORE_PATH . 'Bootstrap.php');

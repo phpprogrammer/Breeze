@@ -57,7 +57,7 @@
         {
             $this->url = substr(String::lbreak($_SERVER['REQUEST_URI'], '/index.php'), strlen(dirname($_SERVER['SCRIPT_NAME'])));
             if (!empty($this->url) && in_array(String::extension($this->url), $this->memory->get('allowed_extensions', array('css','js','less','jpg','png','gif'))) ) {
-                include_once(String::glue(ROOT, $this->url));
+                include(String::glue(ROOT, $this->url));
                 exit();
             } else {
                 return $this->route();
