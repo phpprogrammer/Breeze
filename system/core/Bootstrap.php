@@ -56,13 +56,13 @@
     }
     
     App::$db = new Database();
+    App::$userAgent = new UserAgent();
+    App::$security = new Security();
     App::$router = new Router();
     App::$view = new View();
-    App::$userAgent = new UserAgent();
     App::$log = new Log(LOGS_PATH.'framework.log');
     
     Session::start();
-    App::$security = new Security();
     
     if (App::$memory->get('statistics', false) === true && App::$router->params['utility'] !== true) {
         $stats = new Statistic();
