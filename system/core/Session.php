@@ -33,15 +33,13 @@
             if (self::$started == false) {
                 self::$memory = new Memory('session');
                 $ues = self::$memory->get('use_extended_session');
+                self::$started = true;
                 
-                if ($ues === true) {
-                    self::$started = true;
-                    self::$instance = new ExtendedSession(self::$memory);
-                } elseif (is_string($ues)) {
-                    self::$started = true;
+                if (is_string($ues) && class_exists($ues)) {
                     self::$instance = new $ues(self::$memory);
+                } else if ($ues === true) {
+                    self::$instance = new ExtendedSession(self::$memory);
                 } else {
-                    self::$started = true;
                     self::$instance = new SimpleSession(self::$memory);
                 }
             }
