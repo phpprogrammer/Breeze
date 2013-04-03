@@ -32,11 +32,22 @@
         
         public function antiFloodingFilter()
         {
-            $eT = Session::getElapsedTime();
-            if ($eT !== 0 && $eT < $this->memory->get('interval_between_requests', 1000)) {
-                $irt = (float)$this->memory->get('illegal_request_timeout', 10000)/1000;
-                Session::touchActivity(Timer::micro(2) + $irt);
-                new Error('400', array('time' => (int)$irt ));
+            $res = Application::$db->select('security_activities', 'IP=:ip', array('ip' => $_SERVER['REMOTE_ADDR']), 'time');
+            if (! empty($res)) {
+                $time = $res[0]['time'];
+                $currTime = Timer::micro(2);
+                $diff = intval(($currTime - $time) * 1000);
+                
+                if ($diff < $this->memory->get('interval_between_requests', 1000)) {
+                    $irt = (float)$this->memory->get('illegal_request_timeout', 10000)/1000;
+                    Application::$db->update('security_activities', array('time' => number_format($currTime + $irt, 2, '.', '')), 'IP=:ip', array('ip' => $_SERVER['REMOTE_ADDR']));
+                    new Error('400', array('time' => (int)$irt));
+                    exit();
+                } else {
+                    Application::$db->update('security_activities', array('time' => $currTime), 'IP=:ip', array('ip' => $_SERVER['REMOTE_ADDR']));
+                }
+            } else {
+                Application::$db->insert('security_activities', array('IP' => $_SERVER['REMOTE_ADDR'], 'time' => Timer::micro(2)));
             }
         }
         
