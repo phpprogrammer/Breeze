@@ -153,7 +153,6 @@
 
                 if (($e == 'css' || $e == 'less') && is_readable($this->stylePath.$path)) {
                     $this->css[] = $this->stylePath.$path;
-                    echo $this->stylePath.$path;
                 } else if ($e == 'js' && is_readable($this->scriptPath.$path)) {
                     $this->scripts[] = $this->scriptPath.$path;
                 } else if ($e == 'js' && is_readable(SYS_PATH.'scripts'.DS.$path)) {
