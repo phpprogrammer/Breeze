@@ -1,3 +1,3 @@
-<?php \system\libraries\Translator::load('pl', array(
-	'hello!' => 'witaj %name%!<br/>',
+<?php \system\core\Translator::load('pl', array(
+	'test' => 'test!<br/>',
 ));

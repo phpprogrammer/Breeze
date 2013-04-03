@@ -1,10 +1,8 @@
 <?php
     
-    use \system\core\String;
-    
     function write($str="", $vars=array(), $lang=null)
     {
-        echo Translator::translate($str, $vars, $lang);
+        echo \system\core\Translator::translate($str, $vars, $lang);
     }
     
     function debug()
@@ -13,7 +11,7 @@
             $db = debug_backtrace();
             $db = $db[0];
             $args = func_get_args();
-            echo "[".String::path_trim_root($db['file'])." (".$db['line'].")] {<br/>";
+            echo "[".\system\core\String::path_trim_root($db['file'])." (".$db['line'].")] {<br/>";
             foreach ($args as $key => $value) {
                 for ($i=0;$i<10;$i++) {echo "&nbsp;";}
                 if (isset($value)) {
