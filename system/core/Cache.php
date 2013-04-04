@@ -4,7 +4,7 @@
     
     defined('ROOT') or die();
     
-    class Cache
+    class Cache implements cacheInterface
     {
         private $expiry;
         private $path;
@@ -24,12 +24,9 @@
             return $this;
         }
         
-        public function store($name = '', $value = '', $group = '')
+        public function store($name = '', $value = '')
         {
             $this->encode($name);
-            if (! empty($group)) {
-                $this->openGroup($group);
-            }
             file_put_contents($this->_getPath($name), serialize($value));
             return $this;
         }
@@ -59,7 +56,7 @@
             return false;
         }
         
-        public function delete($name)
+        public function delete($name = '')
         {
             $this->encode($name);
             unlink($this->_getPath($name));
@@ -129,4 +126,14 @@
                 }
             }
         }
+    }
+    
+    class CacheException extends CoreException {}
+    
+    interface cacheInterface
+    {
+        public function store($name, $value);
+        public function retrieve($name);
+        public function exists($name, $expiry);
+        public function delete($name);
     }
