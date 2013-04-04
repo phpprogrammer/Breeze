@@ -13,9 +13,11 @@
         private $bind;
         private $errorCallbackFunction;
         private $errorMsgFormat;
-        private $cache;
         private $db_name;
         private $changed_db = false;
+        private $_cache;
+        private $_cache_group;
+        private $_cache_expiry;
         private static $instance;
     
         public static function setInstance(Database $instance)
@@ -36,13 +38,17 @@
             if (! $memory->isReadable()) {
                 return null;
             }
+            $this->_cache = $memory->get('cache', false);
+            $this->_cache_group = $memory->get('cache_group', 'database');
+            $this->_cache_expiry = $memory->get('cache_expiry', 600);
+            
             $options = array(
                 PDO::ATTR_PERSISTENT => true,
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
             );
-    
+            
             $dsn = strtolower($memory->get('driver')) . ":host=".$memory->get('host').";dbname=".($this->db_name = $memory->get('database')).";port=".$memory->get('port');
-    
+            
             try {
                 parent::__construct($dsn, $memory->get('user'), $memory->get('password'), $options);
                 $this->useDatabase($this->db_name);
@@ -167,19 +173,20 @@
             }
         }
     
-        public function select($table, $where = "", $bind = "", $fields = "*", $useCache = true)
+        public function select($table, $where = "", $bind = "", $fields = "*")
         {
             $sql = "select " . $fields . " from " . $table;
             if (! empty($where)) {
                 $sql .= " where " . $where;
             }
             $sql .= ";";
-            if ($useCache === true && $this->check_cache($sql) === true) {
-                return $this->cache->load();
-            }
-            $result = $this->run($sql, $bind);
-            if ($useCache === true) {
-                $this->cache->save($result);
+            if ($this->_cache === true && $result = $this->_retrieveCache($sql) && !empty($result)) {
+                return $result;
+            } else {
+                $result = $this->run($sql, $bind);
+                if ($this->_cache === true && !empty($result)) {
+                    $this->_storeCache($sql, $result);
+                }
             }
             return $result;
         }
@@ -445,6 +452,16 @@
             }
         }
         
+        public function turnOnCache()
+        {
+            $this->_cache = true;
+        }
+        
+        public function turnOffCache()
+        {
+            $this->_cache = false;
+        }
+        
         private function _toArray(\PDOStatement $statement, $sort = false)
         {
             $return = array();
@@ -458,9 +475,21 @@
             return $return;
         }
         
-        private function check_cache($sql)
+        private function _storeCache($sql, $result)
         {
-            $this->cache = new Cache($sql, CACHE_PATH.'database'.DS);
-            return $this->cache->exists();
+            $cache = new Cache();
+            $cache->openGroup($this->_cache_group);
+            $cache->store($sql, $result);
+        }
+        
+        private function _retrieveCache($sql)
+        {
+            $cache = new Cache();
+            $cache->openGroup($this->_cache_group);
+            if ($cache->exists($sql, $this->_cache_expiry)) {
+                return $cache->retrieve();
+            } else {
+                return null;
+            }
         }
     }
