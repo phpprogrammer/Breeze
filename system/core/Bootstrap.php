@@ -17,7 +17,7 @@
         ob_start('ob_gzhandler');
     }
     
-    App::$version = 0.15;
+    App::$version = 0.16;
     App::$author = 'Tomasz Sapeta';
     
     if (defined('ENVIRONMENT')) {
