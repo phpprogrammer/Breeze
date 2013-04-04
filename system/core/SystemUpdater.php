@@ -6,7 +6,7 @@
     
     ini_set('max_execution_time', 60);
     
-    class SystemUpdate
+    class SystemUpdater
     {
         public $currentVersion;
         public $latestVersion;

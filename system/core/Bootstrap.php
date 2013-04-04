@@ -80,7 +80,7 @@
     }
     
     if (App::$memory->get('auto_updates', false) === true) {
-        $su = new SystemUpdate();
+        $su = new SystemUpdater();
         if ($su->checkUpdate() !== false) {
             $su->update();
         }
