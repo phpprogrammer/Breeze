@@ -6,88 +6,121 @@
     
     class Cache
     {
+        private $expiry;
         private $path;
-        private $srl;
-        private $expiryTime;
+        private $group = '';
+        private $memory;
+        private $lastName = '';
         
-        public function __construct($name, $path = null)
+        public function __construct($path = '')
         {
-            if (!isset($path)) {
-                $path = CACHE_PATH;
+            if (empty($path)) {
+                $this->path = CACHE_PATH;
+            } else {
+                $this->path = $path;
             }
-            $this->path = $path.md5($name).'.php';
-            $this->expiryTime = Application::$memory->get('cache_expiry');
-            $this->srl = new Serialization($this->path);
+            $this->memory = new Memory('caches');
+            $this->expiry = $this->memory->get('default_expiry_time', 360);
             return $this;
         }
         
-        public function save($value)
+        public function store($name = '', $value = '', $group = '')
         {
-            return $this->srl->save($value);
+            $this->encode($name);
+            if (! empty($group)) {
+                $this->openGroup($group);
+            }
+            file_put_contents($this->_getPath($name), serialize($value));
+            return $this;
         }
         
-        public function load()
+        public function retrieve($name = '')
         {
-            return $this->srl->load();
+            $this->encode($name);
+            if ($this->exists($name)) {
+                return unserialize(file_get_contents($this->_getPath($name)));
+            } else {
+                return '';
+            }
         }
         
-        public function exists()
+        public function exists($name = '', $expiry = '')
         {
-            if (file_exists($path = $this->path)) {
-                if ($this->expiryTime === 0 || filectime($path) + $this->expiryTime > time()) {
+            $this->encode($name);
+            $path = $this->_getPath($name);
+            if (empty($expiry) || $expiry <= 0) {
+                $expiry = $this->expiry;
+            }
+            if (is_readable($path)) {
+                if ($this->expiry <= 0 || filectime($path) + $expiry > time()) {
                     return true;
                 }
             }
             return false;
         }
         
-        public function delete()
+        public function delete($name)
         {
-            unlink($this->path.'.php');
+            $this->encode($name);
+            unlink($this->_getPath($name));
         }
         
-        public static function _save($name, $value, $path = null)
+        public function openGroup($name, $expiry = '')
         {
-            if (!isset($path)) {
-                $path = CACHE_PATH;
-            }
-            $srl = new Serialization($path.md5($name).'.php');
+            $this->group = $name;
+            $ge = $this->memory->get('group_expiry_times', array());
             
-            if ($srl->save($value) !== false) {
-                return true;
+            if (!empty($expiry) && $expiry > 0) {
+                $this->expiry = $expiry;
+                if (!isset($ge[$name])) {
+                    $this->setGroupExpiry($name, $expiry);
+                }
             } else {
-                return false;
+                if (isset($ge[$name])) {
+                    $expiry = $this->expiry = $ge[$name];
+                } else {
+                    $expiry = $this->expiry = $this->memory->get('default_expiry_time', 360);
+                }
             }
+            if (!is_dir($path = String::glue($this->path, $name))) {
+                mkdir($path, 0777, true);
+            }
+            return $this;
         }
         
-        public static function _load($name, $path = null)
+        public function setGroupExpiry($group, $expiry)
         {
-            if (!isset($path)) {
-                $path = CACHE_PATH;
-            }
-            if (self::_find($name, $path)) {
-                $srl = new Serialization($path.md5($name).'.php');
-                return $srl->load();
+            $this->memory->insert('group_expiry_times.'.$name, $expiry)->save();
+        }
+        
+        public function encode(&$name)
+        {
+            if (!empty($name)) {
+                $mcrypt = $this->memory->get('crypt_method', 'md5');
+                $name = $mcrypt($name);
+                $this->lastName = $name;
+                return $name;
+            } else if (!empty($this->lastName)) {
+                return $this->lastName;
             } else {
-                return false;
+                return '';
             }
         }
         
-        public static function _delete($name, $path = null)
+        private function _getPath($name)
         {
-            if (!isset($path)) {
-                $path = CACHE_PATH;
-            }
-            if (self::_find($name, $path)) {
-                unlink($path.md5($name).'.php');
-            }
+            return String::glue($this->path, $this->group, $name.'.php');
         }
         
-        public static function _flush($path = null)
+        public static function flush($group = '', $path = '')
         {
-            if (!isset($path)) {
+            if (empty($path)) {
                 $path = CACHE_PATH;
             }
+            if (! empty($group)) {
+                $path = String::glue($path, $group);
+            }
+            
             if ($dir = opendir($path)) {
                 while (false !== ($file = readdir($dir))) {
                     if ($file[0] != '.') { 
@@ -95,18 +128,5 @@
                     }
                 }
             }
-        }
-        
-        public static function _find($name, $path = null, $time = 3600)
-        {
-            if (!isset($path)) {
-                $path = CACHE_PATH;
-            }
-            if (file_exists($path = $path.md5($name).'.php')) {
-                if (filectime($path) + $time > time()) {
-                    return true;
-                }
-            }
-            return false;
         }
     }
