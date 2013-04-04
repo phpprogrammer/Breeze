@@ -12,7 +12,7 @@
     ini_set('short_open_tag', 1);
     ini_set('max_execution_time', intval(App::$memory->get('max_execution_time', 30)));
     
-    if (function_exists('ob_gzhandler') && App::$memory->get('gzip_compression', false) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) {
+    if (function_exists('ob_gzhandler') && App::$memory->get('gzip_compression', false) && isset($_SERVER['HTTP_ACCEPT_ENCODING']) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) {
         ini_set('zlib.output_compression_level', App::$memory->get('gzip_compression_level', 1));
         ob_start('ob_gzhandler');
     }
@@ -32,7 +32,7 @@
                 ini_set('display_errors', 0);
                 break;
             default:
-                exit("Environment isn't set correctly!");
+                exit('Environment isn\'t set correctly!');
         }
     } else {
         define('ENVIRONMENT', 'production');

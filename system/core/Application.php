@@ -17,9 +17,9 @@
         public static $version;
         public static $view;
         
-        public static function loadController($name = "", $act = "", $vars = array())
+        public static function loadController($name = '', $act = '', $vars = array())
         {
-            $q = str_replace(DS, "\\", rtrim(substr(CTRL_PATH, strlen(ROOT)), DS) . DS . ltrim($name, DS));
+            $q = str_replace(DS, '\\', rtrim(substr(CTRL_PATH, strlen(ROOT)), DS) . DS . ltrim($name, DS));
             $target = new $q($vars, $name, $act);
             
             if (method_exists($target, '_broadcast')) {
@@ -39,9 +39,9 @@
             
         }
         
-        public static function loadUtility($name = "", $act = "", $vars = array())
+        public static function loadUtility($name = '', $act = '', $vars = array())
         {
-            $q = str_replace(DS, "\\", rtrim(substr(UTL_PATH, strlen(ROOT)), DS) . DS . ltrim($name, DS));
+            $q = str_replace(DS, '\\', rtrim(substr(UTL_PATH, strlen(ROOT)), DS) . DS . ltrim($name, DS));
             $target = new $q($vars, $name, $act, true);
             
             if (method_exists($target, '_broadcast')) {

@@ -13,10 +13,10 @@
         protected $userManager;
         protected $post = array();
         protected $get = array();
-        protected $__dir = "";
+        protected $__dir = '';
         protected $data = array();
         
-        final public function __construct($vars = array(), $name = "", $action = "", $utl = false)
+        final public function __construct($vars = array(), $name = '', $action = '', $utl = false)
         {
             $this->vars = $vars;
             $this->view = Application::$view;
@@ -79,14 +79,14 @@
             return $this->data;
         }
         
-        final protected function _redirectTo($action="", $httpredirect=false)
+        final protected function _redirectTo($action = '', $httpredirect = false)
         {
             if ($httpredirect === true) {
                 Application::$router->redirect(rtrim(dirname($_SERVER['REQUEST_URI']), DS).DS.$action);
             } else {
                 if (method_exists($this, $action)) {
                     $this->$action($this->vars);
-                    $this->view->expose(ltrim(rtrim($this->__dir . DS, DS), DS) . trim(basename(str_replace("\\", DS, get_class($this)))) . '_' . $action);
+                    $this->view->expose(ltrim(rtrim($this->__dir . DS, DS), DS) . trim(basename(str_replace('\\', DS, get_class($this)))) . '_' . $action);
                 }
             }
         }

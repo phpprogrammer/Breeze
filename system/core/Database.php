@@ -47,7 +47,7 @@
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
             );
             
-            $dsn = strtolower($memory->get('driver')) . ":host=".$memory->get('host').";dbname=".($this->db_name = $memory->get('database')).";port=".$memory->get('port');
+            $dsn = strtolower($memory->get('driver')) . ':host='.$memory->get('host').';dbname='.($this->db_name = $memory->get('database')).';port='.$memory->get('port');
             
             try {
                 parent::__construct($dsn, $memory->get('user'), $memory->get('password'), $options);
@@ -60,34 +60,34 @@
         private function debug()
         {
             if (! empty($this->errorCallbackFunction)) {
-                $error = array("Error" => $this->error);
+                $error = array('Error' => $this->error);
                 if (! empty($this->sql))
-                    $error["SQL Statement"] = $this->sql;
+                    $error['SQL Statement'] = $this->sql;
                 if (! empty($this->bind))
-                    $error["Bind Parameters"] = trim(print_r($this->bind, true));
+                    $error['Bind Parameters'] = trim(print_r($this->bind, true));
     
                 $backtrace = debug_backtrace();
                 if (! empty($backtrace)) {
                     foreach ($backtrace as $info) {
-                        if ($info["file"] != __FILE__) {
-                            $error["Backtrace"] = $info["file"] . " at line " . $info["line"];
+                        if ($info['file'] != __FILE__) {
+                            $error['Backtrace'] = $info['file'] . ' at line ' . $info['line'];
                         }
                     }
                 }
     
-                $msg = "";
-                if ($this->errorMsgFormat == "html") {
-                    if (! empty($error["Bind Parameters"])) {
-                        $error["Bind Parameters"] = "<pre>" . $error["Bind Parameters"] . "</pre>";
+                $msg = '';
+                if ($this->errorMsgFormat == 'html') {
+                    if (! empty($error['Bind Parameters'])) {
+                        $error['Bind Parameters'] = '<pre>' . $error['Bind Parameters'] . '</pre>';
                     }
-                    $css = trim(file_get_contents(dirname(__FILE__) . "/error.css"));
+                    $css = trim(file_get_contents(dirname(__FILE__) . '/error.css'));
                     $msg .= '<style type="text/css">' . "\n" . $css . "\n</style>";
                     $msg .= "\n" . '<div class="db-error">' . "\n\t<h3>SQL Error</h3>";
                     foreach ($error as $key => $val) {
                         $msg .= "\n\t<label>" . $key . ":</label>" . $val;
                     }
                     $msg .= "\n\t</div>\n</div>";
-                } else if($this->errorMsgFormat == "text") {
+                } else if($this->errorMsgFormat == 'text') {
                     $msg .= "SQL Error\n" . str_repeat("-", 50);
                     foreach ($error as $key => $val) {
                         $msg .= "\n\n$key:\n$val";
@@ -99,9 +99,9 @@
             }
         }
     
-        public function delete($table, $where, $bind = "")
+        public function delete($table, $where, $bind = '')
         {
-            $sql = "DELETE FROM " . $table . " WHERE " . $where . ";";
+            $sql = 'delete from ' . $table . ' where ' . $where . ';';
             return $this->run($sql, $bind);
         }
     
@@ -109,14 +109,14 @@
         {
             $driver = $this->getAttribute(PDO::ATTR_DRIVER_NAME);
             if ($driver == 'sqlite') {
-                $sql = "PRAGMA table_info('" . $table . "');";
-                $key = "name";
+                $sql = 'pragma table_info(\'' . $table . '\');';
+                $key = 'name';
             } elseif ($driver == 'mysql') {
-                $sql = "DESCRIBE " . $table . ";";
-                $key = "Field";
+                $sql = 'describe ' . $table . ';';
+                $key = 'Field';
             } else {
-                $sql = "SELECT column_name FROM information_schema.columns WHERE table_name = '" . $table . "';";
-                $key = "column_name";
+                $sql = 'select column_name from information_schema.columns where table_name = \'' . $table . '\';';
+                $key = 'column_name';
             }
     
             if (false !== ($list = $this->run($sql))) {
@@ -143,26 +143,26 @@
         public function insert($table, $info)
         {
             $fields = $this->filter($table, $info);
-            $sql = "insert into " . $table . " (" . implode($fields, ", ") . ") VALUES (:" . implode($fields, ", :") . ");";
+            $sql = 'insert into ' . $table . ' (' . implode($fields, ', ') . ') VALUES (:' . implode($fields, ', :') . ');';
             $bind = array();
             foreach ($fields as $field) {
-                $bind[":$field"] = $info[$field];
+                $bind[':'.$field] = $info[$field];
             }
             return $this->run($sql, $bind);
         }
     
-        public function run($sql, $bind = "")
+        public function run($sql, $bind = '')
         {
             $this->sql = trim($sql);
             $this->bind = $this->cleanup($bind);
-            $this->error = "";
+            $this->error = '';
     
             try {
                 $pdostmt = $this->prepare($this->sql);
                 if ($pdostmt->execute($this->bind) !== false) {
-                    if (stripos($this->sql, "select") === 0 || stripos($this->sql, "describe") === 0 || stripos($this->sql, "pragma") === 0) {
+                    if (stripos($this->sql, 'select') === 0 || stripos($this->sql, 'describe') === 0 || stripos($this->sql, 'pragma') === 0) {
                         return $pdostmt->fetchAll(PDO::FETCH_ASSOC);
-                    } elseif (stripos($this->sql, "insert") === 0 || stripos($this->sql, "update") === 0 || stripos($this->sql, "delete") === 0) {
+                    } elseif (stripos($this->sql, 'insert') === 0 || stripos($this->sql, 'update') === 0 || stripos($this->sql, 'delete') === 0) {
                         return $pdostmt->rowCount();
                     }
                 }
@@ -173,13 +173,13 @@
             }
         }
     
-        public function select($table, $where = "", $bind = "", $fields = "*")
+        public function select($table, $where = '', $bind = '', $fields = '*')
         {
-            $sql = "select " . $fields . " from " . $table;
+            $sql = 'select ' . $fields . ' from ' . $table;
             if (! empty($where)) {
-                $sql .= " where " . $where;
+                $sql .= ' where ' . $where;
             }
-            $sql .= ";";
+            $sql .= ';';
             if ($this->_cache === true && $result = $this->_retrieveCache($sql) && !empty($result)) {
                 return $result;
             } else {
@@ -191,50 +191,50 @@
             return $result;
         }
     
-        public function exists($table, $where, $bind = "")
+        public function exists($table, $where, $bind = '')
         {
-            $sql = "select 1 from " . $table;
+            $sql = 'select 1 from ' . $table;
             if (! empty($where)) {
-                $sql .= " where " . $where . " limit 1";
+                $sql .= ' where ' . $where . ' limit 1';
             }
-            $sql .= ";";
+            $sql .= ';';
             $result = $this->run($sql, $bind);
             return count($result) === 1 ? true : false;
         }
     
-        public function update($table, $info, $where = "", $bind = "")
+        public function update($table, $info, $where = '', $bind = '')
         {
             $fields = $this->filter($table, $info);
             $fieldSize = sizeof($fields);
     
-            $sql = "update " . $table . " set ";
+            $sql = 'update ' . $table . ' set ';
             for ($f = 0; $f < $fieldSize; ++$f) {
                 if($f > 0)
-                    $sql .= ", ";
-                $sql .= $fields[$f] . " = :update_" . $fields[$f];
+                    $sql .= ', ';
+                $sql .= $fields[$f] . ' = :update_' . $fields[$f];
             }
             if (!empty($where)) {
-                $sql .= " where " . $where;
+                $sql .= ' where ' . $where;
             }
-            $sql .= ";";
+            $sql .= ';';
     
             $bind = $this->cleanup($bind);
             foreach ($fields as $field) {
-                $bind[":update_$field"] = $info[$field];
+                $bind[':update_'.$field] = $info[$field];
             }
     
             return $this->run($sql, $bind);
         }
         
-        public function alter($target, $actions, $bind = "")
+        public function alter($target, $actions, $bind = '')
         {
             $target = trim($target);
             $actions = trim($actions);
             if (stripos($target, 'database') !== 0 && stripos($target, 'table') !== 0) {
                 if (strpos($target, '.') > 0) {
-                    $target = "table ".$target;
+                    $target = 'table '.$target;
                 } else {
-                    $target = "database ".$database;
+                    $target = 'database '.$database;
                 }
             }
             if (!empty($bind)) {
@@ -242,12 +242,12 @@
                     $actions = str_replace(':'.$key, $value, $actions);
                 }
             }
-            return $this->run("alter ".$target." ".$actions.";");
+            return $this->run('alter '.$target.' '.$actions.';');
         }
         
         public function describe($table)
         {
-            $result = $this->run("describe ".$table.";");
+            $result = $this->run('describe '.$table.';');
             if (!empty($result)) {
                 foreach ($result as $index => $row) {
                     $pos = strpos($row['Type'], '(');
@@ -263,61 +263,61 @@
         
         public function flush($table)
         {
-            $this->exec("flush table ".$table.";");
+            $this->exec('flush table '.$table.';');
         }
         
         public function useDatabase($dbname)
         {
             $this->changed_db = true;
-            $this->exec("use ".$dbname.";");
+            $this->exec('use '.$dbname.';');
         }
         
         public function quit()
         {
             if ($this->changed_db === true) {
-                $this->exec("use ".$this->db_name.";");
+                $this->exec('use '.$this->db_name.';');
                 $this->changed_db = false;
             }
         }
         
         public function showDatabases()
         {
-            $dbs = $this->query("show databases;");
+            $dbs = $this->query('show databases;');
             return $this->_toArray($dbs, true);
         }
         
-        public function showTables($schema = "")
+        public function showTables($schema = '')
         {
             if (!empty($schema)) {
-                $schema = "from ".$schema;
+                $schema = 'from '.$schema;
             }
-            $tbs = $this->query("show tables ".$schema.";");
+            $tbs = $this->query('show tables '.$schema.';');
             return $this->_toArray($tbs, true);
         }
         
-        public function showColumns($table = "")
+        public function showColumns($table = '')
         {
             if (!empty($table)) {
-                $table = "from ".$table;
+                $table = 'from '.$table;
             }
-            $cls = $this->query("show columns ".$table.";");
+            $cls = $this->query('show columns '.$table.';');
             return $this->_toArray($cls);
         }
         
-        public function showEngines($fields = "*")
+        public function showEngines($fields = '*')
         {
             return $this->select('information_schema.engines', 'not support="NO" and not engine="PERFORMANCE_SCHEMA" order by "engine" asc', '', $fields);
         }
         
-        public function showCollation($fields = "*")
+        public function showCollation($fields = '*')
         {
             return $this->select('information_schema.collations', '1 order by "collation_name" asc', '', $fields);
         }
         
-        public function info($table = "", $fields = "*")
+        public function info($table = '', $fields = '*')
         {
-            $dbname = "";
-            if (strpos($table, ".") === false) {
+            $dbname = '';
+            if (strpos($table, '.') === false) {
                 $dbname = $this->db_name;
             } else {
                 list($dbname, $table) = explode('.', $table);
@@ -335,7 +335,7 @@
             }
         }
         
-        public function infoSchema($dbname = "", $fields = "*")
+        public function infoSchema($dbname = '', $fields = '*')
         {
             if (empty($dbname)) {
                 $dbname = $this->db_name;
@@ -378,24 +378,23 @@
             return $return;
         }
         
-        public function createTable($table, $info, $primary_key = null, $engine = "InnoDB")
+        public function createTable($table, $info, $primary_key = null, $engine = 'InnoDB')
         {
-            $sql = "create table if not exists " . $table . " (";
+            $sql = 'create table if not exists ' . $table . ' (';
             foreach ($info as $key => $value) {
-                $sql .= "`".$key."` ". $value . ",";
+                $sql .= '`'.$key.'` '. $value . ',';
             }
             
             if (! isset($primary_key)) {
                 $primary_key = array_keys($info);
                 $primary_key = $primary_key[0];
             }
-            $sql .= " primary key (`". $primary_key ."`)";
-            $sql .= ") engine=". $engine ." default charset=utf8 collate=utf8_unicode_ci auto_increment=1;";
-            echo $sql ."<br/>";
+            $sql .= ' primary key (`'. $primary_key .'`)';
+            $sql .= ') engine='. $engine .' default charset=utf8 collate=utf8_unicode_ci auto_increment=1;';
             return $this->exec($sql);
         }
         
-        public function issetTable($table, $schema = "")
+        public function issetTable($table, $schema = '')
         {
             return in_array($table, $this->showTables($schema));
         }
@@ -406,7 +405,7 @@
                 $schema = $this->db_name;
             }
             try {
-                $result = $this->select("information_schema.tables", "table_schema=:schema and table_name=:name limit 1", array('schema' => $schema, 'name' => $table));
+                $result = $this->select('information_schema.tables', 'table_schema=:schema and table_name=:name limit 1', array('schema' => $schema, 'name' => $table));
             } catch (Exception $e) {
                 return false;
             }
@@ -421,32 +420,32 @@
             if (!is_array($new)) {
                 $new = array($new);
             }
-            $sql = "rename table ";
+            $sql = 'rename table ';
             foreach ($old as $index => $value) {
                 if (!isset($new[$index])) {
                     break;
                 }
                 if (isset($schema)) {
-                    $value = $schema.".".$value;
-                    $new[$index] = $schema.".".$new[$index];
+                    $value = $schema.'.'.$value;
+                    $new[$index] = $schema.'.'.$new[$index];
                 }
                 if ($index !== 0)
-                    $sql .= ", ";
-                $sql .= $value." to ".$new[$index];
+                    $sql .= ', ';
+                $sql .= $value.' to '.$new[$index];
             }
-            $this->run($sql.";");
+            $this->run($sql.';');
             return true;
         }
         
-        public function setErrorCallbackFunction($errorCallbackFunction, $errorMsgFormat="html")
+        public function setErrorCallbackFunction($errorCallbackFunction, $errorMsgFormat = 'html')
         {
-            if (in_array(strtolower($errorCallbackFunction), array("echo", "print"))) {
-                $errorCallbackFunction = "print_r";
+            if (in_array(strtolower($errorCallbackFunction), array('echo', 'print'))) {
+                $errorCallbackFunction = 'print_r';
             }
             if (function_exists($errorCallbackFunction)) {
                 $this->errorCallbackFunction = $errorCallbackFunction;
-                if (! in_array(strtolower($errorMsgFormat), array("html", "text"))) {
-                    $errorMsgFormat = "html";
+                if (! in_array(strtolower($errorMsgFormat), array('html', 'text'))) {
+                    $errorMsgFormat = 'html';
                 }
                 $this->errorMsgFormat = $errorMsgFormat;
             }

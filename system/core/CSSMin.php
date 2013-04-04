@@ -9,10 +9,10 @@
         public static function minify($source)
         {
             $source = preg_replace( '#/\*.*?\*/#s', '', $source );
-            $source = str_replace(array("\t","\n","\r","  "), '', $source);
+            $source = str_replace(array("\t","\n","\r",'  '), '', $source);
             $source = str_replace(
-                array("{ ",   " {",   "} ",   " }",   ";}",   ": ",   " :",   "; ",   " ;",   ", ",   " ,",   "( ",   " (",   ") ",   " )"), 
-                array("{",    "{",    "}",    "}",    "}",    ":",    ":",    ";",    ";",    ",",    ",",    "(",    "(",    ")",    ")"), 
+                array('{ ',   ' {',   '} ',   ' }',   ';}',   ': ',   ' :',   '; ',   ' ;',   ', ',   ' ,',   '( ',   ' (',   ') ',   ' )'), 
+                array('{',    '{',    '}',    '}',    '}',    ':',    ':',    ';',    ';',    ',',    ',',    '(',    '(',    ')',    ')'), 
             $source);
             $source = str_replace('0.', '.', $source); 
             
