@@ -74,24 +74,14 @@
             
             $update = @ file_get_contents($updateUrl);
             
-            if ($update === false) {
-                $this->log('Could not download update `'.$updateUrl.'`!');
+            try {
+                $exp = new Explorer();
+                $exp->write($updateFile, $update);
+            }
+            catch (ExplorerException $e) {
+                $this->log($e->getMessage());
                 return false;
             }
-            
-            $handle = fopen($updateFile, 'w');
-            
-            if (!$handle) {
-                $this->log('Could not save update file `'.$updateFile.'`!');
-                return false;
-            }
-            
-            if (!fwrite($handle, $update)) {
-                $this->log('Could not write to update file `'.$updateFile.'`!');
-                return false;
-            }
-            
-            fclose($handle);
             
             return true;
         }
@@ -114,32 +104,14 @@
                 
                 $this->log('Updating `'.$filename.'`!');
                 
-                if (!is_dir($foldername)) {
-                    if (!mkdir($foldername, 0755, true)) {
-                        $this->log('Could not create folder `'.$foldername.'`!');
-                    }
+                try {
+                    $exp = new Explorer($foldername);
+                    $contents = zip_entry_read($file, zip_entry_filesize($file));
+                    $exp->write($filename, $contents);
                 }
-                
-                $contents = zip_entry_read($file, zip_entry_filesize($file));
-                
-                if (!is_writable($filepath)) {
-                    $this->log('Could not update `'.$filepath.'`, not writeable!');
-                    continue;
+                catch (ExplorerException $e) {
+                    $this->log($e->getMessage());
                 }
-                
-                $updateHandle = @fopen($filepath, 'w');
-                
-                if (!$updateHandle) {
-                    $this->log('Could not update file `'.$filepath.'`!');
-                    continue;
-                }
-                
-                if (!fwrite($updateHandle, $contents)) {
-                    $this->log('Could not write to file `'.$filepath.'`!');
-                    continue;
-                }
-                
-                fclose($updateHandle);
             }
             
             zip_close($zip);
