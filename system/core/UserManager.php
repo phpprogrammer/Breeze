@@ -58,7 +58,6 @@
                 return false;
             }
             if (self::isLoggedIn()) {
-                        echo "Echo on ".basename(__FILE__).':: Jesteś już zalogowany!';
                 return true;
             }
             $mcrypt = $this->mCrypt;
@@ -80,7 +79,6 @@
                 self::$user = new User($id, $user);
                 self::$loggedIn = true;
                                     
-                        echo "Echo on ".basename(__FILE__).'::  Zalogowano!';
                 return true;
             } elseif ($this->issetUser($user)) {
                 //...
