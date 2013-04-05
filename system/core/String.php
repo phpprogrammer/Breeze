@@ -67,7 +67,9 @@
             }
             $path = array_shift($args);
             foreach ($args as $value) {
-                $path = rtrim($path, DS) . DS . ltrim($value, DS);
+                if ($value !== '.') {
+                    $path = rtrim($path, DS) . DS . ltrim($value, DS);
+                }
             }
             return $path;
         }
