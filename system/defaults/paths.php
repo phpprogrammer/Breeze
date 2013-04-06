@@ -15,6 +15,7 @@
 		'LOGS'			=>		'application/temporary/logs/',
 		'OPT'			=>		'application/temporary/optimized/',
 		'VIEW'			=>		'application/views/',
+        'TPL'           =>      'application/views/templates/',
 		'SYS'			=>		'system/',
 		'CORE'			=>		'system/core/',
 		'DEF'			=>		'system/defaults/',
