@@ -95,18 +95,17 @@
 
     $controller;
     if ($params['utility'] !== true) {
-        App::$view->path(VIEW_PATH);
-        $controller = App::loadController($params['controller'], $params['action'], $params['vars']);
+        $controller = App::launchController($params['controller'], $params['action'], $params['vars']);
     } else {
         define('SELF', UTL_PATH . rtrim($params['location'], DS) . DS);
         App::$view->path(SELF.'views'.DS, SELF.'styles'.DS, SELF.'scripts'.DS);
-        $controller = App::loadUtility($params['controller'], $params['action'], $params['vars']);
+        $controller = App::launchUtility($params['controller'], $params['action'], $params['vars']);
         $params['controller'] = String::leaveRoot($params['controller']);
     }
     
     App::$db->quit();
     Session::save();
 
-    App::$view->expose($params['controller'].'_'.$params['action'], $controller->_getData());
+    App::$view->display();
     
     ob_end_flush();
