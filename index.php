@@ -16,5 +16,5 @@
 	define('ENVIRONMENT', 'development');
 	
 	// And away we go...
-	
-	require(CORE_PATH . 'Bootstrap.php');
+    
+    require(CORE_PATH . 'Bootstrap.php');
