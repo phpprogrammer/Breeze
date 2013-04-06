@@ -8,25 +8,16 @@
     
     class View
     {
-        private $target;
-        private $path;
-        private $data = array();
-        private $timer;
-        private $displayed = false;
-        private $mode = 0;
-        private static $instance;
-        private $stylePath;
-        private $scriptPath;
+        private $style_path;
+        private $script_path;
+        private $subviews = array();
         private $css = array();
         private $scripts = array();
+        private static $instance;
         
-        public function __construct()
+        public static function getInstance()
         {
-            $this->path = VIEW_PATH;
-            $this->stylePath = STYLE_PATH . Application::$memory->get('style', 'default') . DS;
-            $this->scriptPath = SCRIPTS_PATH;
-            self::setInstance($this);
-            return $this;
+            return self::$instance;
         }
         
         private static function setInstance(View $instance)
@@ -34,93 +25,57 @@
             self::$instance = $instance;
         }
         
-        public static function getInstance()
+        public function __construct()
         {
-            return self::$instance;
-        }
-        
-        public function data(Array $data = array())
-        {
-            if (! empty($data)) {
-                $this->data = $this->data + $data;
-            }
-        }
-        
-        public function path($path, $stylePath = "", $scriptPath = "")
-        {
-            if (empty($stylePath)) {
-                $stylePath = STYLE_PATH . Application::$memory->get('style', 'default') . DS;
-            }
-            if (empty($scriptPath)) {
-                $scriptPath = SCRIPTS_PATH;
-            }
-            $this->path = rtrim($path, DS) . DS;
-            $this->stylePath = rtrim($stylePath, DS) . DS;
-            $this->scriptPath = rtrim($scriptPath, DS) . DS;
+            Subview::$tpl_path = TPL_PATH;
+            $this->style_path = STYLE_PATH . App::$memory->get('style', 'default') . DS;
+            $this->script_path = SCRIPTS_PATH;
+            self::setInstance($this);
             return $this;
         }
         
-        public function mode($mode)
+        public function prependView(viewInterface &$view)
         {
-            $this->mode = $mode;
+            array_unshift($this->subviews, $view);
             return $this;
         }
         
-        public function target($target)
+        public function appendView(viewInterface &$view)
         {
-            $this->target = String::cleanFilename($target);
+            $this->subviews[] = $view;
             return $this;
         }
         
-        public function expose($target = null, $data = array())
+        public function setPath(Array $path)
         {
-            if ($this->displayed) {
-                return false;
+            if (!empty($path['tpl'])) {
+                Subview::$tpl_path = $path['tpl'];
             }
-            if (isset($target)) {
-                $this->target = $target;
+            if (!empty($path['style'])) {
+                $this->style_path = $path['style'];
             }
-            $this->data($data);
-            $this->add_baseData();
-            $this->add_headers();
+            if (!empty($path['script'])) {
+                $this->script_path = $path['script'];
+            }
+            return $this;
+        }
+        
+        public function display()
+        {
+            echo '<!doctype html><html><head>', $this->getHeaders(), '</head><body>';
             
-            extract($this->data);
-            
-            if ($this->viewExists()) {
-                $timer = App::$timers['page_loading']->stop();
-                include($this->path.$this->target.'.php');
-                $this->displayed = true;
+            foreach ($this->subviews as $subview) {
+                $subview->render($this);
             }
+            
+            echo '</body></html>';
         }
         
-        public function import($viewName)
-        {
-            extract($this->data);
-            include $this->path.$viewName.'.php';
-        }
-        
-        public function turnOff()
-        {
-            $this->displayed = true;
-        }
-        
-        public function displayError($code)
-        {
-            new Error($code);
-        }
-        
-        private function add_baseData()
-        {
-            $this->data['baseurl'] = VIEW_PATH;
-            $this->data['def_path'] = DEFAULT_PATH;
-            $this->data['uri'] = App::$router->params['uri'];
-        }
-        
-        private function add_headers()
+        public function getHeaders()
         {
             $memory = new Memory('headers');
-            $headers = '<title>'.$memory->get('site_title').'</title>';
-            $headers .= '<meta charset="utf-8" />';
+            $headers = '<title>'.$memory->get('site_title', '').'</title>';
+            $headers .= '<meta charset="'.$memory->get('charset', 'utf-8').'" />';
             foreach ($memory->getPrefix('meta_') as $key => $value) {
                 $key = str_replace('meta_', '', $key);
                 $headers .= "<meta name=\"$key\" content=\"$value\" />";
@@ -141,7 +96,7 @@
                 }
             }
             $headers .= "<base href=\"http://".String::glue($_SERVER['HTTP_HOST'], App::$router->params['base_uri'])."\">";
-            $this->data['headers'] = $headers;
+            return $headers;
         }
         
         public function add()
@@ -151,10 +106,10 @@
             foreach ($args as $path) {
                 $e = String::extension($path);
 
-                if (($e == 'css' || $e == 'less') && is_readable($this->stylePath.$path)) {
-                    $this->css[] = $this->stylePath.$path;
-                } else if ($e == 'js' && is_readable($this->scriptPath.$path)) {
-                    $this->scripts[] = $this->scriptPath.$path;
+                if (($e == 'css' || $e == 'less') && is_readable($this->style_path.$path)) {
+                    $this->css[] = $this->style_path.$path;
+                } else if ($e == 'js' && is_readable($this->script_path.$path)) {
+                    $this->scripts[] = $this->script_path.$path;
                 } else if ($e == 'js' && is_readable(SYS_PATH.'scripts'.DS.$path)) {
                     $this->scripts[] = SYS_PATH.'scripts'.DS.$path;
                 }
@@ -162,18 +117,85 @@
             return $this;
         }
         
-        private function viewExists()
-        {
-            return is_readable($this->path.$this->target.'.php');
-        }
-        
         private function getCSS()
         {
-            return Optimization::joinFiles($this->css, Application::$memory->get('css_compression'));
+            return Optimization::joinFiles($this->css, Application::$memory->get('css_compression', true));
         }
         
         private function getScripts()
         {
-            return Optimization::joinFiles($this->scripts, Application::$memory->get('js_compression'));
+            return Optimization::joinFiles($this->scripts, Application::$memory->get('js_compression', true));
         }
     }
+    
+    interface viewInterface
+    {
+        public function render();
+    }
+    
+    class Subview
+    {
+        private $models = array();
+        private $data = array();
+        private $subviews = array();
+        public static $tpl_path;
+        
+        
+        public function set($key, $value)
+        {
+            array_set($this->data, $key, $value);
+            return $this;
+        }
+        
+        public function get($key)
+        {
+            return array_get($this->data, $key);
+        }
+        
+        public function addModel($name, $object)
+        {
+            $this->models[(string)$name] = $object;
+            return $this;
+        }
+        
+        public function hasModel($name)
+        {
+            return isset($this->models[(string)$name]);
+        }
+        
+        public function getModel($name, $contract = null)
+        {
+            if(!isset($this->models[(string)$name])) {
+                throw new ViewException('The model '.$name.' is not defined.', 10);
+            }
+            
+            if($contract !== null) {
+                if(!is_a($this->models[(string)$name], $contract)) {
+                    throw new ViewException('Model contract '.$contract.' is not satisfied for '.$name, 11);
+                }
+            }
+            return $this->models[(string)$name];
+        }
+        
+        public function addSubview($name, viewInterface &$view)
+        {
+            $this->subviews[(string)$name] = $view;
+            return $this;
+        }
+        
+        public function subview($name)
+        {
+            return $this->subviews[(string)$name];
+        }
+        
+        public function import($tpl_name)
+        {
+            if (! empty($tpl_name)) {
+                extract($this->data);
+                extract($this->models);
+                include(String::glue(self::$tpl_path, $tpl_name . '.php'));
+            }
+        }
+    }
+    
+    class ViewException extends CoreException {}
