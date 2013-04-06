@@ -17,7 +17,7 @@
         public static $version;
         public static $view;
         
-        public static function loadController($name = '', $act = '', $vars = array())
+        public static function launchController($name = '', $act = '', $vars = array())
         {
             $q = str_replace(DS, '\\', rtrim(substr(CTRL_PATH, strlen(ROOT)), DS) . DS . ltrim($name, DS));
             $target = new $q($vars, $name, $act);
@@ -34,12 +34,7 @@
             return $target;
         }
         
-        public static function loadModel($name)
-        {
-            
-        }
-        
-        public static function loadUtility($name = '', $act = '', $vars = array())
+        public static function launchUtility($name = '', $act = '', $vars = array())
         {
             $q = str_replace(DS, '\\', rtrim(substr(UTL_PATH, strlen(ROOT)), DS) . DS . ltrim($name, DS));
             $target = new $q($vars, $name, $act, true);
@@ -53,14 +48,5 @@
                 return new Error('404');
             }
             return $target;
-        }
-        
-        public static function controllerExist($name, $path = CTRL_PATH)
-        {
-            return is_readable(rtrim($path, DS).DS.trim($name, DS).'.php');
-        }
-        public static function utilityExist($name, $path = UTL_PATH)
-        {
-            return is_readable(rtrim($path, DS).DS.trim($name, DS).'.php');
         }
     }
