@@ -1,4 +1,5 @@
 <?php
+    $charset = 'utf-8';
 	$meta_author = 'Tomasz Sapeta';
 	$meta_created = '06/04/2012';
 	$meta_description = 'opis';
