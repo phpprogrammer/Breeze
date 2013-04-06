@@ -15,6 +15,7 @@
         public static $timers = array();
         public static $userAgent;
         public static $version;
+        public static $codename;
         public static $view;
         
         public static function launchController($name = '', $act = '', $vars = array())

@@ -17,7 +17,8 @@
         ob_start('ob_gzhandler');
     }
     
-    App::$version = 0.16;
+    App::$version = 0.2;
+    App::$codename = 'Alize';
     App::$author = 'Tomasz Sapeta';
     
     if (defined('ENVIRONMENT')) {
